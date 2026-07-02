@@ -6,6 +6,9 @@ REM
 REM Dengan password MySQL (jika root pakai password):
 REM   scripts\install-production.bat -DbPassword "123456"
 REM
+REM Port MySQL Laragon (default script: 3307):
+REM   scripts\install-production.bat -DbPort "3307"
+REM
 REM Dengan URL kustom:
 REM   scripts\install-production.bat -AppUrl "http://localhost/bonusku/public"
 

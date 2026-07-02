@@ -59,6 +59,16 @@ Laragon default sering **tanpa password**. Jika pakai password:
 scripts\install-production.bat -DbPassword "123456"
 ```
 
+### Port MySQL
+
+Server production ini memakai MySQL di port **3307** (default script sudah diset ke `3307`). Jika port berbeda:
+
+```bat
+scripts\install-production.bat -DbPort "3307"
+```
+
+Pastikan `DB_PORT` di `.env` sama dengan port MySQL Laragon (Menu Laragon → MySQL → my.ini atau pengaturan port).
+
 ### Jika URL berbeda
 
 ```bat

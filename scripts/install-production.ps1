@@ -7,7 +7,7 @@
 #
 # Parameter contoh:
 #   scripts\install-production.bat -DbPassword "123456"
-#   scripts\install-production.bat -AppUrl "http://bonusku.test"
+#   scripts\install-production.bat -DbPort "3307"
 
 param(
     [string]$AppDir = "C:\webserver\www\bonusku",
@@ -15,7 +15,7 @@ param(
     [string]$Branch = "main",
     [string]$AppUrl = "http://bonusku.test",
     [string]$DbHost = "127.0.0.1",
-    [string]$DbPort = "3306",
+    [string]$DbPort = "3307",
     [string]$DbName = "bonusku",
     [string]$DbUser = "root",
     [string]$DbPassword = ""
