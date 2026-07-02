@@ -97,6 +97,132 @@ php artisan config:cache
 
 ---
 
+## Login GitHub (repo privat)
+
+Repo `ypgscto/bonusku` bersifat **private**, server harus login dulu sebelum `git clone` / `git pull`.
+
+Pilih **satu** metode di bawah.
+
+### Metode 1 — Personal Access Token (PAT) — paling mudah di Windows
+
+**A. Buat token di GitHub (lakukan di browser, sekali saja)**
+
+1. Login GitHub → [https://github.com/settings/tokens](https://github.com/settings/tokens)
+2. **Generate new token** → **Generate new token (classic)**
+3. Note: `bonusku-server`
+4. Centang scope: **`repo`** (full control of private repositories)
+5. Generate → **salin token** (hanya muncul sekali, simpan aman)
+
+**B. Clone / pull di server (Terminal Laragon)**
+
+```bat
+cd C:\webserver\www
+git clone https://github.com/ypgscto/bonusku.git bonusku
+```
+
+Saat diminta:
+
+| Field | Isi |
+|-------|-----|
+| Username | Username GitHub Anda (pemilik akses ke org `ypgscto`) |
+| Password | **Token PAT** (bukan password login GitHub) |
+
+Windows **Git Credential Manager** akan menyimpan kredensial — `git pull` berikutnya tidak perlu login lagi.
+
+**C. Cek pull berhasil**
+
+```bat
+cd C:\webserver\www\bonusku
+git pull origin main
+```
+
+---
+
+### Metode 2 — SSH key (disarankan untuk server jangka panjang)
+
+**A. Buat SSH key di server**
+
+```bat
+ssh-keygen -t ed25519 -C "bonusku-server" -f C:\Users\%USERNAME%\.ssh\bonusku_deploy
+```
+
+Tekan Enter untuk passphrase kosong (atau isi jika ingin lebih aman).
+
+**B. Salin public key**
+
+```bat
+type C:\Users\%USERNAME%\.ssh\bonusku_deploy.pub
+```
+
+**C. Tambahkan ke GitHub**
+
+- **Opsi deploy key (hanya repo bonusku):**  
+  Repo → **Settings** → **Deploy keys** → **Add deploy key** → paste public key → centang **Allow read access**
+- **Opsi akun:**  
+  GitHub → **Settings** → **SSH and GPG keys** → **New SSH key**
+
+**D. Konfigurasi SSH**
+
+Buat/edit file `C:\Users\<user>\.ssh\config`:
+
+```
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile C:/Users/<user>/.ssh/bonusku_deploy
+  IdentitiesOnly yes
+```
+
+Ganti `<user>` dengan username Windows server.
+
+**E. Clone dengan SSH**
+
+```bat
+cd C:\webserver\www
+git clone git@github.com:ypgscto/bonusku.git bonusku
+```
+
+Tes koneksi:
+
+```bat
+ssh -T git@github.com
+```
+
+---
+
+### Metode 3 — Simpan token di URL remote (hati-hati)
+
+Hanya jika metode lain gagal. **Jangan commit token ke Git.**
+
+```bat
+cd C:\webserver\www\bonusku
+git remote set-url origin https://<USERNAME>:<TOKEN>@github.com/ypgscto/bonusku.git
+git pull origin main
+```
+
+Ganti `<USERNAME>` dan `<TOKEN>`. Token bisa dicabut kapan saja dari GitHub Settings.
+
+---
+
+### Troubleshooting GitHub
+
+| Masalah | Solusi |
+|---------|--------|
+| `Repository not found` | Akun/token tidak punya akses ke repo privat `ypgscto/bonusku` |
+| `Authentication failed` | Password harus **PAT**, bukan password login GitHub |
+| `Permission denied (publickey)` | SSH key belum ditambahkan ke GitHub / path `config` salah |
+| Pull minta login terus | Jalankan: `git config --global credential.helper manager` |
+| Sudah salah simpan password | **Windows** → Credential Manager → Windows Credentials → hapus entri `git:https://github.com` |
+
+Setelah GitHub berhasil login, lanjutkan instalasi:
+
+```bat
+cd C:\webserver\www\bonusku
+scripts\install-production.bat
+```
+
+---
+
 ## Update rutin (sudah terinstall)
 
 ```bat
@@ -144,3 +270,4 @@ scripts\pull-production.bat
 | `git` tidak dikenali | Install Git atau gunakan Terminal Laragon |
 | 404 setelah install | Document root harus ke folder `public` |
 | Session error | Pastikan migrate sudah jalan (tabel sessions dibuat) |
+| `Repository not found` / pull gagal | Lihat bagian **Login GitHub (repo privat)** di atas |
