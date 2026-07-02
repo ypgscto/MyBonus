@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\PresenterRequestStatus;
 use App\Enums\RecordStatus;
+use App\Enums\UserRole;
 use App\Models\AuditLog;
 use App\Models\CommissionScheme;
 use App\Models\NotificationLog;
@@ -14,7 +15,6 @@ use App\Models\PresenterRequestDetail;
 use App\Models\PmbPeriod;
 use App\Models\User;
 use Database\Seeders\PresenterCategorySeeder;
-use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -38,11 +38,19 @@ class WorkflowScenarioTest extends TestCase
         Storage::fake('verifikator_transfers');
         Storage::fake('presenter_transfers');
 
-        $this->seed([UserSeeder::class, PresenterCategorySeeder::class]);
+        $this->seed(PresenterCategorySeeder::class);
 
-        $this->admin = User::where('email', 'adminpmb@example.com')->firstOrFail();
-        $this->verifikator = User::where('email', 'verifikator@example.com')->firstOrFail();
-        $this->keuangan = User::where('email', 'keuangan@example.com')->firstOrFail();
+        $this->admin = User::factory()->create([
+            'role' => UserRole::AdminPmb,
+            'phone' => '628111111111',
+        ]);
+        $this->verifikator = User::factory()->create([
+            'role' => UserRole::Verifikator,
+            'phone' => '628122222222',
+        ]);
+        $this->keuangan = User::factory()->keuangan()->create([
+            'phone' => '628133333333',
+        ]);
     }
 
     public function test_full_workflow_from_admin_pmb_to_closed(): void
@@ -310,6 +318,21 @@ class WorkflowScenarioTest extends TestCase
 
     public function test_workflow_demo_seeder_creates_expected_scenarios(): void
     {
+        User::factory()->create([
+            'email' => 'adminpmb@example.com',
+            'role' => UserRole::AdminPmb,
+            'phone' => '628144444444',
+        ]);
+        User::factory()->create([
+            'email' => 'verifikator@example.com',
+            'role' => UserRole::Verifikator,
+            'phone' => '628155555555',
+        ]);
+        User::factory()->keuangan()->create([
+            'email' => 'keuangan@example.com',
+            'phone' => '628166666666',
+        ]);
+
         $this->seed(\Database\Seeders\WorkflowDemoSeeder::class);
 
         $this->assertDatabaseHas('presenter_requests', [
@@ -330,8 +353,9 @@ class WorkflowScenarioTest extends TestCase
         $this->assertEquals(2, $closed->details()->count());
 
         $draftDup = PresenterRequest::where('request_code', 'PR-202607-9004')->firstOrFail();
+        $demoAdmin = User::where('email', 'adminpmb@example.com')->firstOrFail();
 
-        $this->actingAs($this->admin)
+        $this->actingAs($demoAdmin)
             ->post(route('presenter-requests.submit', $draftDup))
             ->assertSessionHas('duplicate_nim_report');
     }

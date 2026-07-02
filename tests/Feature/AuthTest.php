@@ -118,14 +118,14 @@ class AuthTest extends TestCase
     {
         $this->seed(\Database\Seeders\UserSeeder::class);
 
-        $user = User::where('email', 'superadmin@example.com')->first();
+        $user = User::where('email', 'bashar.ypgs@gmail.com')->first();
 
         $this->assertNotNull($user);
-        $this->assertTrue(password_verify('password123', $user->password));
+        $this->assertTrue(password_verify('12345678', $user->password));
 
         $this->post('/login', [
-            'email' => 'superadmin@example.com',
-            'password' => 'password123',
+            'email' => 'bashar.ypgs@gmail.com',
+            'password' => '12345678',
         ])->assertRedirect(route('dashboard.super-admin'));
     }
 }
