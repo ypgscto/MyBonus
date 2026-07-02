@@ -62,6 +62,31 @@ function Invoke-MySql([string]$Query) {
     }
 }
 
+function Test-MySqlReady {
+    $mysqlArgs = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-e", "SELECT 1")
+    if ($DbPassword -ne "") {
+        $mysqlArgs = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-p$DbPassword", "-e", "SELECT 1")
+    }
+    $output = & mysql @mysqlArgs 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "MySQL tidak bisa dihubungi di ${DbHost}:${DbPort}" -ForegroundColor Red
+        Write-Host "Error: $output" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "Langkah perbaikan:" -ForegroundColor Yellow
+        Write-Host "  1. Buka aplikasi Laragon" -ForegroundColor White
+        Write-Host "  2. Klik 'Start All' (Apache/Nginx + MySQL harus hijau)" -ForegroundColor White
+        Write-Host "  3. Tunggu beberapa detik, lalu jalankan ulang script ini" -ForegroundColor White
+        Write-Host ""
+        Write-Host "Cek manual di terminal Laragon:" -ForegroundColor Yellow
+        Write-Host "  mysql -u root -e `"SELECT 1`"" -ForegroundColor White
+        Write-Host ""
+        Write-Host "Jika root pakai password:" -ForegroundColor Yellow
+        Write-Host "  scripts\install-production.bat -DbPassword `"password_anda`"" -ForegroundColor White
+        throw "MySQL belum berjalan atau kredensial salah."
+    }
+}
+
 Write-Host "========================================" -ForegroundColor Yellow
 Write-Host " BONUSKU - Instalasi Pertama (Windows)" -ForegroundColor Yellow
 Write-Host " Folder : $AppDir" -ForegroundColor Yellow
@@ -114,6 +139,7 @@ Set-EnvLine ".env" "DB_USERNAME" $DbUser
 Set-EnvLine ".env" "DB_PASSWORD" $DbPassword
 
 Write-Step "Membuat database MySQL $DbName (jika belum ada)"
+Test-MySqlReady
 $sql = "CREATE DATABASE IF NOT EXISTS ``$DbName`` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 Invoke-MySql $sql
 
