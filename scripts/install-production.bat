@@ -1,5 +1,5 @@
 @echo off
-REM Instalasi pertama BONUSKU — folder kosong, database belum ada
+REM Instalasi pertama BONUSKU - folder kosong, database belum ada
 REM Buka dari Terminal Laragon, lalu jalankan:
 REM   scripts\install-production.bat
 REM

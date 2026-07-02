@@ -1,5 +1,5 @@
 @echo off
-REM Deploy BONUSKU — Windows / Laragon
+REM Deploy BONUSKU - Windows / Laragon
 REM Jalankan dari folder project atau double-click file ini.
 REM
 REM Update rutin:

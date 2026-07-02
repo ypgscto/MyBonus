@@ -1,16 +1,13 @@
-# Instalasi pertama BONUSKU — Windows + Laragon
+# Instalasi pertama BONUSKU - Windows + Laragon
 # Untuk folder kosong dan database belum ada.
 #
 # Usage (buka Terminal Laragon):
-#   powershell -ExecutionPolicy Bypass -File C:\webserver\www\install-bonusku.ps1
-#
-# Atau dari repo setelah clone manual:
-#   powershell -ExecutionPolicy Bypass -File scripts\install-production.ps1
+#   cd C:\webserver\www\bonusku
+#   scripts\install-production.bat
 #
 # Parameter contoh:
-#   -AppUrl "http://bonusku.test"
-#   -DbPassword ""          # Laragon default: root tanpa password
-#   -DbPassword "123456"     # jika MySQL pakai password
+#   scripts\install-production.bat -DbPassword "123456"
+#   scripts\install-production.bat -AppUrl "http://bonusku.test"
 
 param(
     [string]$AppDir = "C:\webserver\www\bonusku",
@@ -55,18 +52,18 @@ function Set-EnvLine([string]$FilePath, [string]$Key, [string]$Value) {
 }
 
 function Invoke-MySql([string]$Query) {
-    $args = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-e", $Query)
+    $mysqlArgs = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-e", $Query)
     if ($DbPassword -ne "") {
-        $args = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-p$DbPassword", "-e", $Query)
+        $mysqlArgs = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-p$DbPassword", "-e", $Query)
     }
-    & mysql @args
+    & mysql @mysqlArgs
     if ($LASTEXITCODE -ne 0) {
         throw "Perintah MySQL gagal. Pastikan MySQL Laragon sudah Start All dan kredensial DB benar."
     }
 }
 
 Write-Host "========================================" -ForegroundColor Yellow
-Write-Host " BONUSKU — Instalasi Pertama (Windows)" -ForegroundColor Yellow
+Write-Host " BONUSKU - Instalasi Pertama (Windows)" -ForegroundColor Yellow
 Write-Host " Folder : $AppDir" -ForegroundColor Yellow
 Write-Host "========================================" -ForegroundColor Yellow
 
@@ -88,7 +85,7 @@ if (-not (Test-Path $AppDir)) {
 } elseif (-not (Test-Path (Join-Path $AppDir "artisan"))) {
     $itemCount = @(Get-ChildItem $AppDir -Force -ErrorAction SilentlyContinue).Count
     if ($itemCount -eq 0) {
-        Write-Step "Folder kosong — clone repository ke $AppDir"
+        Write-Step "Folder kosong, clone repository ke $AppDir"
         Push-Location $AppDir
         git clone --branch $Branch $RepoUrl .
         Pop-Location
@@ -96,7 +93,7 @@ if (-not (Test-Path $AppDir)) {
         throw "Folder $AppDir sudah berisi file lain tetapi bukan project Laravel. Kosongkan folder atau pilih path lain."
     }
 } else {
-    Write-Step "Project sudah ada di $AppDir — lanjut setup database & dependensi"
+    Write-Step "Project sudah ada di $AppDir, lanjut setup database dan dependensi"
 }
 
 Set-Location $AppDir
@@ -116,8 +113,9 @@ Set-EnvLine ".env" "DB_DATABASE" $DbName
 Set-EnvLine ".env" "DB_USERNAME" $DbUser
 Set-EnvLine ".env" "DB_PASSWORD" $DbPassword
 
-Write-Step "Membuat database MySQL '$DbName' (jika belum ada)"
-Invoke-MySql "CREATE DATABASE IF NOT EXISTS ``$DbName`` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+Write-Step "Membuat database MySQL $DbName (jika belum ada)"
+$sql = "CREATE DATABASE IF NOT EXISTS ``$DbName`` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+Invoke-MySql $sql
 
 Write-Step "Composer install"
 composer install --no-dev --optimize-autoloader --no-interaction
@@ -135,8 +133,9 @@ Write-Step "Build frontend"
 npm ci
 npm run build
 
-Write-Step "Storage link & cache"
-try { php artisan storage:link 2>$null } catch { }
+Write-Step "Storage link dan cache"
+php artisan storage:link 2>&1 | Out-Null
+
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -155,7 +154,7 @@ Write-Host "  Email    : bashar.ypgs@gmail.com" -ForegroundColor White
 Write-Host "  Password : 12345678" -ForegroundColor White
 Write-Host ""
 Write-Host "Langkah Laragon:" -ForegroundColor Yellow
-Write-Host "  1. Menu Laragon > www > buat virtual host 'bonusku' (jika belum)" -ForegroundColor White
+Write-Host "  1. Menu Laragon - www - buat virtual host bonusku (jika belum)" -ForegroundColor White
 Write-Host "  2. Document root arahkan ke: $AppDir\public" -ForegroundColor White
 Write-Host "  3. Start All, buka $AppUrl di browser" -ForegroundColor White
 Write-Host "  4. Ganti password super admin segera setelah login" -ForegroundColor White

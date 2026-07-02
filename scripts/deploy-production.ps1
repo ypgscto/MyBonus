@@ -42,7 +42,7 @@ if (-not (Test-Path "artisan")) {
 }
 
 Write-Host "========================================" -ForegroundColor Yellow
-Write-Host " BONUSKU — Deploy Production (Windows)" -ForegroundColor Yellow
+Write-Host " BONUSKU - Deploy Production (Windows)" -ForegroundColor Yellow
 Write-Host " Path : $AppDir" -ForegroundColor Yellow
 Write-Host " Branch: $Branch" -ForegroundColor Yellow
 Write-Host "========================================" -ForegroundColor Yellow
