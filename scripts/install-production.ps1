@@ -51,40 +51,88 @@ function Set-EnvLine([string]$FilePath, [string]$Key, [string]$Value) {
     Set-Content -Path $FilePath -Value $result -Encoding UTF8
 }
 
-function Invoke-MySql([string]$Query) {
-    $mysqlArgs = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-e", $Query)
-    if ($DbPassword -ne "") {
-        $mysqlArgs = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-p$DbPassword", "-e", $Query)
+function Get-EnvValue([string]$FilePath, [string]$Key) {
+    if (-not (Test-Path $FilePath)) {
+        return $null
     }
-    & mysql @mysqlArgs
-    if ($LASTEXITCODE -ne 0) {
+    foreach ($line in Get-Content $FilePath) {
+        if ($line -match "^\s*$([regex]::Escape($Key))\s*=\s*(.*)$") {
+            $value = $Matches[1].Trim()
+            if ($value -match '^"(.*)"$') {
+                return $Matches[1]
+            }
+            if ($value -match "^'(.*)'$") {
+                return $Matches[1]
+            }
+            return $value
+        }
+    }
+    return $null
+}
+
+function Invoke-MySqlCommand([string[]]$Arguments) {
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $output = & mysql @Arguments 2>&1 | Out-String
+        return @{
+            Output = $output.Trim()
+            ExitCode = $LASTEXITCODE
+        }
+    } finally {
+        $ErrorActionPreference = $previousPreference
+    }
+}
+
+function Get-MySqlArguments([string]$Query) {
+    $arguments = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-e", $Query)
+    if ($DbPassword -ne "") {
+        $arguments = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-p$DbPassword", "-e", $Query)
+    }
+    return $arguments
+}
+
+function Invoke-MySql([string]$Query) {
+    $result = Invoke-MySqlCommand (Get-MySqlArguments $Query)
+    if ($result.ExitCode -ne 0) {
         throw "Perintah MySQL gagal. Pastikan MySQL Laragon sudah Start All dan kredensial DB benar."
     }
 }
 
 function Test-MySqlReady {
-    $mysqlArgs = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-e", "SELECT 1")
-    if ($DbPassword -ne "") {
-        $mysqlArgs = @("-h", $DbHost, "-P", $DbPort, "-u", $DbUser, "-p$DbPassword", "-e", "SELECT 1")
+    $result = Invoke-MySqlCommand (Get-MySqlArguments "SELECT 1")
+    if ($result.ExitCode -eq 0) {
+        return
     }
-    $output = & mysql @mysqlArgs 2>&1
-    if ($LASTEXITCODE -ne 0) {
+
+    $output = $result.Output
+    Write-Host ""
+    Write-Host "MySQL gagal di ${DbHost}:${DbPort} (user: $DbUser)" -ForegroundColor Red
+    Write-Host "Error: $output" -ForegroundColor Red
+    Write-Host ""
+
+    if ($output -match "1045|Access denied") {
+        Write-Host "Root MySQL memerlukan password." -ForegroundColor Yellow
+        Write-Host "Jalankan ulang dengan password root Laragon:" -ForegroundColor Yellow
+        Write-Host "  scripts\install-production.bat -DbPassword `"password_root`"" -ForegroundColor White
         Write-Host ""
-        Write-Host "MySQL tidak bisa dihubungi di ${DbHost}:${DbPort}" -ForegroundColor Red
-        Write-Host "Error: $output" -ForegroundColor Red
-        Write-Host ""
-        Write-Host "Langkah perbaikan:" -ForegroundColor Yellow
-        Write-Host "  1. Buka aplikasi Laragon" -ForegroundColor White
-        Write-Host "  2. Klik 'Start All' (Apache/Nginx + MySQL harus hijau)" -ForegroundColor White
-        Write-Host "  3. Tunggu beberapa detik, lalu jalankan ulang script ini" -ForegroundColor White
-        Write-Host ""
-        Write-Host "Cek manual di terminal Laragon:" -ForegroundColor Yellow
-        Write-Host "  mysql -u root -e `"SELECT 1`"" -ForegroundColor White
-        Write-Host ""
-        Write-Host "Jika root pakai password:" -ForegroundColor Yellow
-        Write-Host "  scripts\install-production.bat -DbPassword `"password_anda`"" -ForegroundColor White
-        throw "MySQL belum berjalan atau kredensial salah."
+        Write-Host "Cek manual:" -ForegroundColor Yellow
+        Write-Host "  mysql -u root -P $DbPort -p -e `"SELECT 1`"" -ForegroundColor White
+        throw "Akses MySQL ditolak. Berikan password dengan -DbPassword."
     }
+
+    Write-Host "Langkah perbaikan:" -ForegroundColor Yellow
+    Write-Host "  1. Buka aplikasi Laragon" -ForegroundColor White
+    Write-Host "  2. Klik 'Start All' (Apache/Nginx + MySQL harus hijau)" -ForegroundColor White
+    Write-Host "  3. Pastikan port MySQL benar (script default: $DbPort)" -ForegroundColor White
+    Write-Host "  4. Jalankan ulang script ini" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Cek manual di terminal Laragon:" -ForegroundColor Yellow
+    Write-Host "  mysql -u root -P $DbPort -e `"SELECT 1`"" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Jika root pakai password:" -ForegroundColor Yellow
+    Write-Host "  scripts\install-production.bat -DbPassword `"password_anda`"" -ForegroundColor White
+    throw "MySQL belum berjalan atau kredensial salah."
 }
 
 Write-Host "========================================" -ForegroundColor Yellow
@@ -126,6 +174,13 @@ Set-Location $AppDir
 if (-not (Test-Path ".env")) {
     Write-Step "Membuat file .env dari .env.example"
     Copy-Item ".env.example" ".env"
+}
+
+if ($DbPassword -eq "") {
+    $envPassword = Get-EnvValue ".env" "DB_PASSWORD"
+    if ($envPassword) {
+        $DbPassword = $envPassword
+    }
 }
 
 Write-Step "Mengatur .env production"
