@@ -1,24 +1,48 @@
-# Deploy BONUSKU — Production
+# Deploy BONUSKU — Production (Windows + Laragon)
 
 Repository: https://github.com/ypgscto/bonusku
 
-## Instalasi pertama di server
+Path web server: `C:\webserver\www\bonusku`
 
-```bash
-cd /var/www/bonusku   # sesuaikan path project
-git clone https://github.com/ypgscto/bonusku.git .
-cp .env.example .env
-# Edit .env: APP_URL, DB_*, MAIL_*, KIRIMI_*, APP_KEY (php artisan key:generate)
+---
 
+## Instalasi pertama
+
+Buka **Terminal Laragon** (agar `php`, `composer`, `git`, `npm` tersedia di PATH).
+
+```powershell
+cd C:\webserver\www
+git clone https://github.com/ypgscto/bonusku.git bonusku
+cd bonusku
+copy .env.example .env
+```
+
+Edit `.env` production:
+
+- `APP_URL` — URL akses aplikasi (mis. `http://bonusku.domain.ac.id/public`)
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- `DB_*` — database MySQL Laragon
+- `MAIL_*`, `KIRIMI_*`
+
+```powershell
 composer install --no-dev --optimize-autoloader
 php artisan key:generate
 php artisan migrate --force
 php artisan db:seed --force
-npm ci && npm run build
+npm ci
+npm run build
 php artisan storage:link
 ```
 
-**Akun super admin awal** (dari seeder):
+Atau gunakan script deploy + seed:
+
+```powershell
+cd C:\webserver\www\bonusku
+powershell -ExecutionPolicy Bypass -File scripts\deploy-production.ps1 -Seed
+```
+
+### Akun super admin awal
 
 | Email | Password sementara |
 |-------|-------------------|
@@ -26,34 +50,59 @@ php artisan storage:link
 
 Ganti password segera setelah login pertama.
 
-## Update rutin (pull production)
+---
 
-```bash
-chmod +x scripts/deploy-production.sh
-./scripts/deploy-production.sh
+## Update rutin (pull + deploy lengkap)
+
+Dari folder project:
+
+```bat
+cd C:\webserver\www\bonusku
+scripts\deploy-production.bat
 ```
 
-Atau manual:
+Atau PowerShell:
 
-```bash
-cd /var/www/bonusku
-git pull origin main
-composer install --no-dev --optimize-autoloader
-php artisan migrate --force
-npm ci && npm run build
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+```powershell
+cd C:\webserver\www\bonusku
+powershell -ExecutionPolicy Bypass -File scripts\deploy-production.ps1
 ```
 
-### Instalasi pertama via script deploy
+Script akan menjalankan:
 
-```bash
-RUN_SEED=1 ./scripts/deploy-production.sh
+1. `git pull origin main`
+2. `composer install --no-dev`
+3. `php artisan migrate --force`
+4. `npm ci` + `npm run build`
+5. `php artisan storage:link`
+6. `php artisan config:cache` / `route:cache` / `view:cache`
+
+---
+
+## Pull cepat (hanya Git)
+
+Jika hanya ingin mengambil kode terbaru tanpa migrate/build:
+
+```bat
+scripts\pull-production.bat
 ```
+
+---
+
+## Virtual host Laragon
+
+Arahkan document root ke folder `public`:
+
+```
+C:\webserver\www\bonusku\public
+```
+
+Pastikan `storage/` dan `bootstrap/cache/` dapat ditulis oleh web server.
+
+---
 
 ## Catatan
 
-- File `.env` tidak ada di Git — konfigurasi production disetel di server.
-- `php artisan db:seed` hanya dijalankan sekali saat instalasi awal, bukan setiap deploy.
-- Pastikan `storage/` dan `bootstrap/cache/` writable oleh web server.
+- File `.env` tidak ada di Git — konfigurasi hanya di server.
+- `php artisan db:seed` **hanya sekali** saat instalasi awal (`-Seed`), jangan setiap deploy.
+- Script Linux tersedia di `scripts/deploy-production.sh` jika diperlukan.
