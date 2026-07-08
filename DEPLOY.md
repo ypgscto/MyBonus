@@ -252,12 +252,37 @@ Isi script deploy:
 
 ---
 
-## Pull cepat (hanya Git)
+## Pull cepat (hanya Git, repo privat)
+
+**Opsi A — token langsung (disarankan pertama kali):**
+
+```bat
+cd C:\webserver\www\bonusku
+scripts\pull-production.bat -GitUsername ypgscto -GitToken "ghp_xxxx"
+```
+
+**Opsi B — simpan token di server (sekali setup):**
+
+```bat
+cd C:\webserver\www\bonusku\scripts
+copy .github-token.example .github-token
+notepad .github-token
+```
+
+Isi file `.github-token` dengan PAT GitHub (scope **repo**), satu baris saja. Lalu:
 
 ```bat
 cd C:\webserver\www\bonusku
 scripts\pull-production.bat
 ```
+
+**Deploy lengkap dengan token:**
+
+```bat
+scripts\deploy-production.bat -GitToken "ghp_xxxx"
+```
+
+Token **tidak** disimpan di URL remote Git setelah pull selesai.
 
 ---
 
@@ -267,7 +292,7 @@ scripts\pull-production.bat
 |--------|----------------|
 | `install-production.bat` | Instalasi pertama (folder kosong + DB baru) |
 | `deploy-production.bat` | Update rutin setelah live |
-| `pull-production.bat` | Hanya `git pull` |
+| `pull-production.bat` | Hanya `git pull` (dukung PAT untuk repo privat) |
 
 ---
 

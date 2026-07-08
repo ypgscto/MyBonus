@@ -2,7 +2,10 @@
 REM Deploy BONUSKU - Windows / Laragon
 REM Jalankan dari folder project atau double-click file ini.
 REM
-REM Update rutin:
+REM Update rutin (repo privat, dengan token):
+REM   scripts\deploy-production.bat -GitToken "ghp_xxxx"
+REM
+REM Atau simpan token di scripts\.github-token lalu:
 REM   scripts\deploy-production.bat
 REM
 REM Instalasi pertama (+ seed):

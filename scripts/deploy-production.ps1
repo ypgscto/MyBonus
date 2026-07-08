@@ -8,17 +8,25 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\deploy-production.ps1 -Seed
 #
 # Parameter:
-#   -AppDir  Path root Laravel (default: C:\webserver\www\bonusku)
-#   -Branch  Branch Git (default: main)
-#   -Seed    Jalankan php artisan db:seed --force (hanya instalasi pertama)
+#   -AppDir       Path root Laravel (default: C:\webserver\www\bonusku)
+#   -Branch       Branch Git (default: main)
+#   -Seed         Jalankan php artisan db:seed --force (hanya instalasi pertama)
+#   -GitUsername  Username GitHub (default: ypgscto)
+#   -GitToken      Personal Access Token untuk repo privat
+#   -TokenFile     Path file token (default: scripts\.github-token)
 
 param(
     [string]$AppDir = "C:\webserver\www\bonusku",
     [string]$Branch = "main",
-    [switch]$Seed
+    [switch]$Seed,
+    [string]$GitUsername = "ypgscto",
+    [string]$GitToken = "",
+    [string]$TokenFile = ""
 )
 
 $ErrorActionPreference = "Stop"
+
+. "$PSScriptRoot\GitPrivateRepo.ps1"
 
 function Write-Step([string]$Message) {
     Write-Host ""
@@ -52,8 +60,12 @@ Assert-Command php
 Assert-Command composer
 
 Write-Step "Git pull origin $Branch"
-git fetch origin $Branch
-git pull origin $Branch
+Invoke-PrivateGitPull `
+    -AppDir $AppDir `
+    -Branch $Branch `
+    -GitUsername $GitUsername `
+    -GitToken $GitToken `
+    -TokenFile $TokenFile
 
 Write-Step "Composer install (production)"
 composer install --no-dev --optimize-autoloader --no-interaction

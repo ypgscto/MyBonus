@@ -1,22 +1,17 @@
 @echo off
-REM Pull cepat dari GitHub (tanpa migrate/build).
-REM Untuk deploy lengkap gunakan: scripts\deploy-production.bat
+REM Pull cepat dari GitHub repo privat (dengan PAT).
+REM
+REM Dengan token langsung:
+REM   scripts\pull-production.bat -GitUsername ypgscto -GitToken "ghp_xxxx"
+REM
+REM Dengan file token (satu baris di scripts\.github-token):
+REM   scripts\pull-production.bat
+REM
+REM Deploy lengkap setelah pull:
+REM   scripts\deploy-production.bat -GitToken "ghp_xxxx"
 
 setlocal
-set "APP_DIR=C:\webserver\www\bonusku"
-
-if not exist "%APP_DIR%\artisan" (
-    echo Error: Project tidak ditemukan di %APP_DIR%
-    echo Clone dulu: git clone https://github.com/ypgscto/bonusku.git %APP_DIR%
-    exit /b 1
-)
-
-cd /d "%APP_DIR%"
-echo ==> Git pull origin main
-git pull origin main
-if errorlevel 1 exit /b 1
-
-echo.
-echo Pull selesai. Jalankan deploy lengkap jika perlu:
-echo   scripts\deploy-production.bat
-endlocal
+set "SCRIPT_DIR=%~dp0"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%pull-production.ps1" %*
+set "EXIT_CODE=%ERRORLEVEL%"
+endlocal & exit /b %EXIT_CODE%
