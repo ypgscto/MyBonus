@@ -219,7 +219,7 @@ Ganti `<USERNAME>` dan `<TOKEN>`. Token bisa dicabut kapan saja dari GitHub Sett
 | Masalah | Solusi |
 |---------|--------|
 | `Repository not found` | Akun/token tidak punya akses ke repo privat `ypgscto/bonusku` |
-| `Authentication failed` | Password harus **PAT**, bukan password login GitHub |
+| `Authentication failed` / `Invalid username or token` | Hapus kredensial lama di **Credential Manager** → `git:https://github.com`. Cek token: `scripts\test-github-token.bat -GitToken "..."`. Pull darurat: `scripts\git-pull-token.cmd "..."` |
 | `Permission denied (publickey)` | SSH key belum ditambahkan ke GitHub / path `config` salah |
 | Pull minta login terus | Jalankan: `git config --global credential.helper manager` |
 | Sudah salah simpan password | **Windows** → Credential Manager → Windows Credentials → hapus entri `git:https://github.com` |
@@ -261,11 +261,24 @@ cd C:\webserver\www\bonusku
 scripts\pull-production.bat -GitToken "github_pat_xxxx"
 ```
 
-Token bisa **classic** (`ghp_...`) atau **fine-grained** (`github_pat_...`). Username tidak perlu — script memakai `Authorization: Bearer`.
+Token bisa **classic** (`ghp_...`) atau **fine-grained** (`github_pat_...`). Username **tidak perlu**.
+
+**Cek token dulu:**
+
+```bat
+scripts\test-github-token.bat -GitToken "github_pat_xxxx"
+```
 
 **Fine-grained PAT** — pastikan:
 - Repository access: `ypgscto/bonusku`
 - Permissions: **Contents** = Read, **Metadata** = Read
+- Jika organisasi pakai SSO: di halaman token klik **Configure SSO** → **Authorize** untuk `ypgscto`
+
+**Pull darurat (tanpa PowerShell, copy file ini manual jika perlu):**
+
+```bat
+scripts\git-pull-token.cmd github_pat_xxxx
+```
 
 **Opsi B — simpan token di server (sekali setup):**
 
