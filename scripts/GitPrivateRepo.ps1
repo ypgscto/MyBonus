@@ -1,22 +1,15 @@
-function Resolve-GitHubCredentials {
+function Resolve-GitHubToken {
     param(
-        [string]$GitUsername = "ypgscto",
         [string]$GitToken = "",
         [string]$TokenFile = ""
     )
 
     if ($GitToken -ne "") {
-        return @{
-            Username = $GitUsername
-            Token = $GitToken
-        }
+        return $GitToken.Trim()
     }
 
     if ($env:GITHUB_TOKEN) {
-        return @{
-            Username = if ($env:GITHUB_USERNAME) { $env:GITHUB_USERNAME } else { $GitUsername }
-            Token = $env:GITHUB_TOKEN
-        }
+        return $env:GITHUB_TOKEN.Trim()
     }
 
     if ($TokenFile -eq "") {
@@ -25,22 +18,51 @@ function Resolve-GitHubCredentials {
 
     if (Test-Path $TokenFile) {
         $line = (Get-Content $TokenFile -TotalCount 1 -ErrorAction SilentlyContinue).Trim()
-        if ($line -match "^([^:]+):(.+)$") {
-            return @{
-                Username = $Matches[1].Trim()
-                Token = $Matches[2].Trim()
-            }
+
+        if ($line -match "^[^:]+:(.+)$") {
+            return $Matches[1].Trim()
         }
 
         if ($line -ne "") {
-            return @{
-                Username = $GitUsername
-                Token = $line
-            }
+            return $line
         }
     }
 
     return $null
+}
+
+function Get-GitAuthConfigArgs {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Token
+    )
+
+    return @(
+        "-c", "credential.helper="
+        "-c", "http.https://github.com/.extraheader=AUTHORIZATION: bearer $Token"
+    )
+}
+
+function Invoke-GitWithOptionalAuth {
+    param(
+        [string[]]$GitArguments,
+        [string]$Token = ""
+    )
+
+    $command = @("git")
+    if ($Token -ne "") {
+        $command += Get-GitAuthConfigArgs -Token $Token
+    }
+    $command += $GitArguments
+
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $command[0] $command[1..($command.Length - 1)] 2>&1 | Out-Host
+        return $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousPreference
+    }
 }
 
 function Invoke-PrivateGitPull {
@@ -50,7 +72,6 @@ function Invoke-PrivateGitPull {
         [string]$Branch = "main",
         [string]$RepoOwner = "ypgscto",
         [string]$RepoName = "bonusku",
-        [string]$GitUsername = "ypgscto",
         [string]$GitToken = "",
         [string]$TokenFile = ""
     )
@@ -63,53 +84,43 @@ function Invoke-PrivateGitPull {
         throw "Bukan folder Git: $AppDir"
     }
 
+    $token = Resolve-GitHubToken -GitToken $GitToken -TokenFile $TokenFile
+
     Push-Location $AppDir
     try {
-        $originalRemote = (git remote get-url origin).Trim()
-        $credentials = Resolve-GitHubCredentials -GitUsername $GitUsername -GitToken $GitToken -TokenFile $TokenFile
-        $usedTemporaryRemote = $false
-
-        if ($credentials) {
-            $encodedUser = [uri]::EscapeDataString($credentials.Username)
-            $encodedToken = [uri]::EscapeDataString($credentials.Token)
-            $authRemote = "https://${encodedUser}:${encodedToken}@github.com/${RepoOwner}/${RepoName}.git"
-
-            git remote set-url origin $authRemote | Out-Null
-            $usedTemporaryRemote = $true
+        $authToken = ""
+        if ($token) {
+            $authToken = $token
         }
 
-        $previousPreference = $ErrorActionPreference
-        $ErrorActionPreference = "Continue"
-        try {
-            git fetch origin $Branch 2>&1 | Out-Host
-            $fetchExitCode = $LASTEXITCODE
+        $fetchExitCode = Invoke-GitWithOptionalAuth -GitArguments @("fetch", "origin", $Branch) -Token $authToken
 
-            if ($fetchExitCode -ne 0 -and -not $credentials) {
-                throw @"
+        if ($fetchExitCode -ne 0 -and -not $token) {
+            throw @"
 Git fetch gagal. Repo privat memerlukan token GitHub.
 
-Jalankan salah satu:
-  scripts\pull-production.bat -GitUsername ypgscto -GitToken "ghp_xxxx"
-  scripts\pull-production.bat -TokenFile C:\path\github-token.txt
+Jalankan:
+  scripts\pull-production.bat -GitToken "github_pat_xxxx"
 
-Atau simpan token di scripts\.github-token (satu baris: ghp_xxxx)
+Atau simpan token di scripts\.github-token (satu baris token saja)
 "@
-            }
+        }
 
-            if ($fetchExitCode -ne 0) {
-                throw "Git fetch gagal. Periksa username/token dan akses repo ${RepoOwner}/${RepoName}."
-            }
+        if ($fetchExitCode -ne 0) {
+            throw @"
+Git fetch gagal. Periksa token dan akses repo ${RepoOwner}/${RepoName}.
 
-            git pull origin $Branch 2>&1 | Out-Host
-            if ($LASTEXITCODE -ne 0) {
-                throw "Git pull gagal."
-            }
-        } finally {
-            $ErrorActionPreference = $previousPreference
+Untuk fine-grained PAT pastikan:
+  - Repository access: hanya bonusku (atau All repositories)
+  - Permissions: Contents = Read, Metadata = Read
 
-            if ($usedTemporaryRemote) {
-                git remote set-url origin $originalRemote | Out-Null
-            }
+Buat token: https://github.com/settings/tokens?type=beta
+"@
+        }
+
+        $pullExitCode = Invoke-GitWithOptionalAuth -GitArguments @("pull", "origin", $Branch) -Token $authToken
+        if ($pullExitCode -ne 0) {
+            throw "Git pull gagal."
         }
     } finally {
         Pop-Location

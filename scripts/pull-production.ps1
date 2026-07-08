@@ -1,23 +1,20 @@
 # Pull cepat dari GitHub repo privat (Windows + Laragon)
 #
 # Usage:
-#   cd C:\webserver\www\bonusku
-#   scripts\pull-production.bat -GitUsername ypgscto -GitToken "ghp_xxxx"
+#   scripts\pull-production.bat -GitToken "github_pat_xxxx"
 #
 # Atau simpan token di scripts\.github-token (jangan di-commit):
 #   scripts\pull-production.bat
 #
 # Parameter:
-#   -AppDir       Path project (default: C:\webserver\www\bonusku)
-#   -Branch       Branch Git (default: main)
-#   -GitUsername  Username GitHub (default: ypgscto)
-#   -GitToken     Personal Access Token (scope: repo)
-#   -TokenFile    Path file berisi token atau username:token
+#   -AppDir     Path project (default: C:\webserver\www\bonusku)
+#   -Branch     Branch Git (default: main)
+#   -GitToken   Personal Access Token (classic ghp_ atau fine-grained github_pat_)
+#   -TokenFile  Path file berisi token
 
 param(
     [string]$AppDir = "C:\webserver\www\bonusku",
     [string]$Branch = "main",
-    [string]$GitUsername = "ypgscto",
     [string]$GitToken = "",
     [string]$TokenFile = ""
 )
@@ -41,11 +38,10 @@ Write-Host "==> Git pull origin $Branch" -ForegroundColor Cyan
 Invoke-PrivateGitPull `
     -AppDir $AppDir `
     -Branch $Branch `
-    -GitUsername $GitUsername `
     -GitToken $GitToken `
     -TokenFile $TokenFile
 
 Write-Host ""
 Write-Host "Pull selesai." -ForegroundColor Green
 Write-Host "Deploy lengkap (migrate + build):" -ForegroundColor Cyan
-Write-Host "  scripts\deploy-production.bat -GitToken `"ghp_xxxx`"" -ForegroundColor White
+Write-Host "  scripts\deploy-production.bat -GitToken `"github_pat_xxxx`"" -ForegroundColor White

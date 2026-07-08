@@ -2,7 +2,7 @@
 REM Pull cepat dari GitHub repo privat (dengan PAT).
 REM
 REM Dengan token langsung:
-REM   scripts\pull-production.bat -GitUsername ypgscto -GitToken "ghp_xxxx"
+REM   scripts\pull-production.bat -GitToken "github_pat_xxxx"
 REM
 REM Dengan file token (satu baris di scripts\.github-token):
 REM   scripts\pull-production.bat

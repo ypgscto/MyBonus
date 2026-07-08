@@ -11,15 +11,13 @@
 #   -AppDir       Path root Laravel (default: C:\webserver\www\bonusku)
 #   -Branch       Branch Git (default: main)
 #   -Seed         Jalankan php artisan db:seed --force (hanya instalasi pertama)
-#   -GitUsername  Username GitHub (default: ypgscto)
-#   -GitToken      Personal Access Token untuk repo privat
+#   -GitToken     Personal Access Token untuk repo privat
 #   -TokenFile     Path file token (default: scripts\.github-token)
 
 param(
     [string]$AppDir = "C:\webserver\www\bonusku",
     [string]$Branch = "main",
     [switch]$Seed,
-    [string]$GitUsername = "ypgscto",
     [string]$GitToken = "",
     [string]$TokenFile = ""
 )
@@ -63,7 +61,6 @@ Write-Step "Git pull origin $Branch"
 Invoke-PrivateGitPull `
     -AppDir $AppDir `
     -Branch $Branch `
-    -GitUsername $GitUsername `
     -GitToken $GitToken `
     -TokenFile $TokenFile
 

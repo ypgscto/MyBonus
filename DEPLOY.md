@@ -258,8 +258,14 @@ Isi script deploy:
 
 ```bat
 cd C:\webserver\www\bonusku
-scripts\pull-production.bat -GitUsername ypgscto -GitToken "ghp_xxxx"
+scripts\pull-production.bat -GitToken "github_pat_xxxx"
 ```
+
+Token bisa **classic** (`ghp_...`) atau **fine-grained** (`github_pat_...`). Username tidak perlu — script memakai `Authorization: Bearer`.
+
+**Fine-grained PAT** — pastikan:
+- Repository access: `ypgscto/bonusku`
+- Permissions: **Contents** = Read, **Metadata** = Read
 
 **Opsi B — simpan token di server (sekali setup):**
 
@@ -279,7 +285,7 @@ scripts\pull-production.bat
 **Deploy lengkap dengan token:**
 
 ```bat
-scripts\deploy-production.bat -GitToken "ghp_xxxx"
+scripts\deploy-production.bat -GitToken "github_pat_xxxx"
 ```
 
 Token **tidak** disimpan di URL remote Git setelah pull selesai.
