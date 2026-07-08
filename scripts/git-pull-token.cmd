@@ -26,6 +26,11 @@ cd /d "%APP_DIR%"
 set GIT_TERMINAL_PROMPT=0
 set GCM_INTERACTIVE=Never
 
+echo ==> Bersihkan salinan manual script yang menghalangi pull
+for %%F in (GitPrivateRepo.ps1 pull-production.ps1 test-github-token.ps1 git-pull-token.cmd pull-production.bat test-github-token.bat) do (
+    if exist "scripts\%%F" del /f /q "scripts\%%F" 2>nul
+)
+
 echo ==> Set remote sementara dengan token
 git remote set-url origin "%AUTH_URL%"
 if errorlevel 1 exit /b 1
