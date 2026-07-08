@@ -10,6 +10,7 @@ use App\Models\Presenter;
 use App\Models\PresenterCategory;
 use App\Services\AuditLogService;
 use App\Services\PresenterAccountService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,13 +58,26 @@ class PresenterController extends Controller
     {
         $plainPassword = null;
 
-        $presenter = DB::transaction(function () use ($request, &$plainPassword) {
-            $presenter = Presenter::create($request->validated());
-            $this->auditLog->logPresenterCreated($presenter);
-            $plainPassword = $this->presenterAccountService->provisionAccount($presenter);
+        try {
+            $presenter = DB::transaction(function () use ($request, &$plainPassword) {
+                $presenter = Presenter::create($request->validated());
+                $this->auditLog->logPresenterCreated($presenter);
+                $plainPassword = $this->presenterAccountService->provisionAccount($presenter);
 
-            return $presenter->fresh();
-        });
+                return $presenter->fresh();
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            if (str_contains($exception->getMessage(), 'users_email_unique')) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->withErrors([
+                        'email' => 'Email sudah digunakan oleh user atau presenter lain.',
+                    ]);
+            }
+
+            throw $exception;
+        }
 
         $emailResult = $plainPassword
             ? $this->presenterAccountService->sendAccountEmail($presenter, $plainPassword)

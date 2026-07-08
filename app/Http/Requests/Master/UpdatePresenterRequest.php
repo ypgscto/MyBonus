@@ -4,6 +4,7 @@ namespace App\Http\Requests\Master;
 
 use App\Enums\RecordStatus;
 use App\Rules\IndonesianPhoneNumber;
+use App\Rules\PresenterEmailAvailable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,13 +15,21 @@ class UpdatePresenterRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('email')) {
+            $this->merge([
+                'email' => strtolower(trim((string) $this->input('email'))),
+            ]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         $presenter = $this->route('presenter');
-        $userId = $presenter?->user_id;
 
         return [
             'presenter_category_id' => [
@@ -36,8 +45,7 @@ class UpdatePresenterRequest extends FormRequest
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('presenters', 'email')->ignore($presenter?->id),
-                Rule::unique('users', 'email')->ignore($userId),
+                new PresenterEmailAvailable($presenter?->id, $presenter?->user_id),
             ],
             'address' => ['nullable', 'string'],
             'note' => ['nullable', 'string'],

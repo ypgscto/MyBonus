@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PresenterAccountService
 {
@@ -23,6 +24,20 @@ class PresenterAccountService
             return '';
         }
 
+        $existingUser = User::query()
+            ->where('email', $presenter->email)
+            ->first();
+
+        if ($existingUser) {
+            if ($existingUser->role !== UserRole::Presenter || $existingUser->presenter) {
+                throw ValidationException::withMessages([
+                    'email' => 'Email sudah digunakan oleh user '.$existingUser->role->label().'. Gunakan email lain.',
+                ]);
+            }
+
+            return $this->linkExistingPresenterUser($presenter, $existingUser);
+        }
+
         $plainPassword = $this->generateTemporaryPassword();
 
         $user = User::create([
@@ -31,6 +46,28 @@ class PresenterAccountService
             'phone' => $presenter->phone,
             'password' => $plainPassword,
             'role' => UserRole::Presenter,
+            'status' => UserStatus::Aktif,
+            'must_change_password' => true,
+        ]);
+
+        $presenter->update([
+            'user_id' => $user->id,
+            'account_created_at' => now(),
+        ]);
+
+        $this->auditLog->logPresenterAccountCreated($presenter->fresh(), $user);
+
+        return $plainPassword;
+    }
+
+    private function linkExistingPresenterUser(Presenter $presenter, User $user): string
+    {
+        $plainPassword = $this->generateTemporaryPassword();
+
+        $user->update([
+            'name' => $presenter->name,
+            'phone' => $presenter->phone,
+            'password' => $plainPassword,
             'status' => UserStatus::Aktif,
             'must_change_password' => true,
         ]);

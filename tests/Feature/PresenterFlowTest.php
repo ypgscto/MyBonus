@@ -58,6 +58,61 @@ class PresenterFlowTest extends TestCase
         ]);
     }
 
+    public function test_creating_presenter_rejects_email_already_used_by_other_user(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create(['role' => UserRole::AdminPmb]);
+        User::factory()->create([
+            'email' => 'hendraamir137@gmail.com',
+            'role' => UserRole::Keuangan,
+        ]);
+        $category = PresenterCategory::create(['name' => 'Pegawai', 'status' => RecordStatus::Aktif]);
+
+        $this->actingAs($admin)->post(route('master.presenters.store'), [
+            'presenter_category_id' => $category->id,
+            'name' => 'AMIR',
+            'bank_name' => 'BCA',
+            'account_number' => '1234567890',
+            'account_holder_name' => 'AMIR',
+            'phone' => '082346649311',
+            'email' => 'hendraamir137@gmail.com',
+            'status' => 'aktif',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertDatabaseMissing('presenters', [
+            'email' => 'hendraamir137@gmail.com',
+        ]);
+    }
+
+    public function test_creating_presenter_links_orphan_presenter_user_account(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create(['role' => UserRole::AdminPmb]);
+        $category = PresenterCategory::create(['name' => 'Pegawai', 'status' => RecordStatus::Aktif]);
+        $orphanUser = User::factory()->create([
+            'email' => 'orphan.presenter@example.com',
+            'role' => UserRole::Presenter,
+        ]);
+
+        $this->actingAs($admin)->post(route('master.presenters.store'), [
+            'presenter_category_id' => $category->id,
+            'name' => 'Presenter Orphan',
+            'bank_name' => 'BCA',
+            'account_number' => '1234567890',
+            'account_holder_name' => 'Presenter Orphan',
+            'phone' => '081234567892',
+            'email' => 'orphan.presenter@example.com',
+            'status' => 'aktif',
+        ])->assertRedirect(route('master.presenters.index'));
+
+        $presenter = Presenter::where('email', 'orphan.presenter@example.com')->firstOrFail();
+
+        $this->assertSame($orphanUser->id, $presenter->user_id);
+        $this->assertEquals(1, User::where('email', 'orphan.presenter@example.com')->count());
+    }
+
     public function test_presenter_must_change_password_before_dashboard(): void
     {
         $presenterUser = User::factory()->create([
