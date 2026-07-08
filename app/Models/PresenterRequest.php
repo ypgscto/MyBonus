@@ -147,4 +147,13 @@ class PresenterRequest extends Model
     {
         return $query->where('status', '!=', PresenterRequestStatus::Draft);
     }
+
+    public function bankTransferNote(): string
+    {
+        $nims = $this->relationLoaded('details')
+            ? $this->details->sortBy('id')->pluck('nim')
+            : $this->details()->orderBy('id')->pluck('nim');
+
+        return $this->request_code.' : '.$nims->filter()->implode(', ');
+    }
 }

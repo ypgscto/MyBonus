@@ -2,12 +2,13 @@
     'text' => '',
     'targetId' => null,
     'label' => 'Salin',
+    'title' => 'Salin teks',
 ])
 
 <button
     type="button"
     {{ $attributes->merge(['class' => 'inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700']) }}
-    title="Salin nomor rekening"
+    title="{{ $title }}"
     x-data="{ copied: false }"
     @click="
         const value = {{ $targetId ? "document.getElementById('{$targetId}')?.textContent?.trim()" : json_encode($text) }};

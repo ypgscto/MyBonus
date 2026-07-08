@@ -115,6 +115,8 @@
                     </table>
                 </div>
             </x-card>
+
+            <x-request-bank-transfer-note :request="$request" />
         </div>
 
         <div class="space-y-6">
