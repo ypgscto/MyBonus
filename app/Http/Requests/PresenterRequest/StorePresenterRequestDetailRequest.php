@@ -34,7 +34,11 @@ class StorePresenterRequestDetailRequest extends FormRequest
                 return;
             }
 
-            $presenterRequest = $this->route('presenter_request');
+            $presenterRequest = $this->route('presenter_request') ?? $this->route('presenterRequest');
+            if ($presenterRequest === null) {
+                return;
+            }
+
             $nim = $this->input('nim');
             $service = app(DuplicateNimValidatorService::class);
 

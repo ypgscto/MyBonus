@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\PresenterRequestStatus;
+use App\Models\PmbPeriod;
 use App\Models\Presenter;
 use App\Models\PresenterRequest;
 use App\Models\PresenterRequestDetail;
@@ -69,7 +70,7 @@ class PresenterPortalService
     /**
      * @param  array<string, mixed>  $filters
      */
-    public function students(Presenter $presenter, array $filters = []): LengthAwarePaginator
+    public function students(Presenter $presenter, array $filters = [], ?int $perPage = null): LengthAwarePaginator
     {
         return PresenterRequestDetail::query()
             ->with(['presenterRequest.pmbPeriod', 'presenterRequest.presenter'])
@@ -85,28 +86,28 @@ class PresenterPortalService
                 });
             })
             ->latest('id')
-            ->paginate(15)
+            ->paginate($perPage ?? config('api.pagination.per_page', 15))
             ->withQueryString();
     }
 
     /**
      * @param  array<string, mixed>  $filters
      */
-    public function requests(Presenter $presenter, array $filters = []): LengthAwarePaginator
+    public function requests(Presenter $presenter, array $filters = [], ?int $perPage = null): LengthAwarePaginator
     {
         return $this->requestQuery($presenter)
             ->with(['pmbPeriod', 'presenterTransfer'])
             ->where('status', '!=', PresenterRequestStatus::Draft)
             ->when(true, fn (Builder $query) => $this->applyRequestFilters($query, $filters))
             ->latest('submitted_at')
-            ->paginate(15)
+            ->paginate($perPage ?? config('api.pagination.per_page', 15))
             ->withQueryString();
     }
 
     /**
      * @param  array<string, mixed>  $filters
      */
-    public function payouts(Presenter $presenter, array $filters = []): LengthAwarePaginator
+    public function payouts(Presenter $presenter, array $filters = [], ?int $perPage = null): LengthAwarePaginator
     {
         return $this->requestQuery($presenter)
             ->with(['pmbPeriod', 'presenterTransfer'])
@@ -127,7 +128,7 @@ class PresenterPortalService
             ->when($filters['transfer_to'] ?? null, fn (Builder $q, $date) => $q->whereDate('transferred_to_presenter_at', '<=', $date))
             ->when(true, fn (Builder $query) => $this->applyRequestFilters($query, $filters))
             ->latest('submitted_at')
-            ->paginate(15)
+            ->paginate($perPage ?? config('api.pagination.per_page', 15))
             ->withQueryString();
     }
 
@@ -140,7 +141,7 @@ class PresenterPortalService
     }
 
     /**
-     * @return Collection<int, \App\Models\PmbPeriod>
+     * @return Collection<int, PmbPeriod>
      */
     public function periodOptions(Presenter $presenter): Collection
     {

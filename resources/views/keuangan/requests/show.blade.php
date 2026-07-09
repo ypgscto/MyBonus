@@ -20,6 +20,8 @@
             <x-card header="Data Permintaan">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div><span class="text-xs text-slate-500 block">Kode Permintaan</span><span class="text-sm font-semibold text-slate-900">{{ $request->request_code }}</span></div>
+                    <div><span class="text-xs text-slate-500 block">Tanggal Pengajuan</span><span class="text-sm text-slate-900">{{ $request->request_date->format('d M Y') }}</span></div>
+                    <div><span class="text-xs text-slate-500 block">Tanggal Bayar</span><span class="text-sm text-slate-900">{{ $request->paymentDate()?->format('d M Y') ?? '-' }}</span></div>
                     <div><span class="text-xs text-slate-500 block">Presenter</span><span class="text-sm text-slate-900">{{ $presenter?->name }}</span></div>
                     <div><span class="text-xs text-slate-500 block">Rekening Presenter</span>
                         <span class="text-sm text-slate-900">{{ $presenter?->bank_name }}<br>{{ $presenter?->account_number }}<br><span class="text-slate-600">a.n. {{ $presenter?->account_holder_name }}</span></span>
@@ -28,6 +30,16 @@
                 </div>
             </x-card>
 
+            @if ($request->verifikatorTransfer)
+                <x-card header="Bukti Transfer Verifikator">
+                    <p class="mb-3 text-sm text-slate-600">Bukti transfer yang diunggah Verifikator saat mengirim dana ke keuangan.</p>
+                    <a href="{{ route('keuangan.requests.verifikator-proof', $request) }}" target="_blank" class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100">
+                        <x-icon name="document" class="h-4 w-4" />
+                        Lihat Bukti Transfer Verifikator
+                    </a>
+                </x-card>
+            @endif
+
             <x-card header="Komisi">
                 <div class="grid gap-4 sm:grid-cols-3">
                     <div><span class="text-xs text-slate-500 block">Total Mahasiswa</span><span class="text-sm font-semibold text-slate-900">{{ $request->total_students }}</span></div>
@@ -35,27 +47,6 @@
                     <div><span class="text-xs text-slate-500 block">Total Komisi</span><span class="text-sm font-semibold text-indigo-600">Rp {{ number_format($request->total_commission, 0, ',', '.') }}</span></div>
                 </div>
             </x-card>
-
-            @if ($request->verifikatorTransfer)
-                <x-card header="Transfer dari Verifikator">
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div><span class="text-xs text-slate-500 block">Nominal Transfer</span><span class="text-sm font-semibold text-slate-900">Rp {{ number_format($request->verifikatorTransfer->transfer_amount, 0, ',', '.') }}</span></div>
-                        <div><span class="text-xs text-slate-500 block">Tanggal Transfer</span><span class="text-sm text-slate-900">{{ $request->verifikatorTransfer->transfer_date->format('d M Y') }}</span></div>
-                        @if ($request->verifikator_note)
-                            <div class="sm:col-span-2"><span class="text-xs text-slate-500 block">Catatan Verifikator</span><span class="text-sm text-slate-900">{{ $request->verifikator_note }}</span></div>
-                        @endif
-                        @if ($request->verifikatorTransfer->note)
-                            <div class="sm:col-span-2"><span class="text-xs text-slate-500 block">Catatan Transfer Verifikator</span><span class="text-sm text-slate-900">{{ $request->verifikatorTransfer->note }}</span></div>
-                        @endif
-                        <div class="sm:col-span-2">
-                            <span class="text-xs text-slate-500 block mb-1">Bukti Transfer Verifikator</span>
-                            <a href="{{ route('keuangan.requests.verifikator-proof', $request) }}" target="_blank" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
-                                <x-icon name="document" class="h-4 w-4" /> Unduh Bukti
-                            </a>
-                        </div>
-                    </div>
-                </x-card>
-            @endif
 
             @if ($request->presenterTransfer)
                 <x-card header="Transfer ke Presenter">
@@ -87,9 +78,6 @@
                                 <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">#</th>
                                 <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">NIM</th>
                                 <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Nama</th>
-                                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Tgl Lahir</th>
-                                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Tgl Bayar</th>
-                                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Bukti</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 bg-white">
@@ -98,17 +86,6 @@
                                     <td class="px-5 py-3 text-sm text-slate-900">{{ $loop->iteration }}</td>
                                     <td class="px-5 py-3 text-sm text-slate-900">{{ $detail->nim }}</td>
                                     <td class="px-5 py-3 text-sm text-slate-900">{{ $detail->student_name }}</td>
-                                    <td class="px-5 py-3 text-sm text-slate-600">{{ $detail->birth_date?->format('d/m/Y') ?? '-' }}</td>
-                                    <td class="px-5 py-3 text-sm text-slate-600">{{ $detail->payment_date?->format('d/m/Y') ?? '-' }}</td>
-                                    <td class="px-5 py-3 text-sm">
-                                        @if ($detail->payment_proof_file)
-                                            <a href="{{ route('payment-proofs.download', $detail) }}" target="_blank" class="inline-flex items-center rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-700 hover:bg-slate-50" title="Unduh">
-                                                <x-icon name="document" class="h-4 w-4" />
-                                            </a>
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

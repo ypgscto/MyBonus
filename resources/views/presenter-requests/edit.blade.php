@@ -9,6 +9,10 @@
 
     @include('presenter-requests.partials.duplicate-nim-report')
 
+    @if ($request->isEditable())
+        @include('presenter-requests.partials.commission-preview-card', ['preview' => $commissionPreview, 'live' => true])
+    @endif
+
     <x-card header="Data Permintaan" class="mb-6">
         <form method="POST" action="{{ route('presenter-requests.update', $request) }}">
             @csrf
@@ -177,6 +181,7 @@
     });
 
     const checkNimUrl = @json(route('presenter-requests.check-nim', $request));
+    const commissionPreviewUrl = @json(route('presenter-requests.commission-preview', $request));
     const existingNims = @json($request->details->pluck('nim')->values());
 
     function renderNimFeedback(container, data) {
@@ -250,6 +255,63 @@
             alert('NIM sudah ada dalam permintaan ini.');
         }
     });
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('id-ID').format(Math.round(amount || 0));
+    }
+
+    function renderCommissionPreview(data) {
+        const card = document.getElementById('commission-preview-values');
+        if (!card) return;
+
+        card.querySelector('[data-field="total_students"]').textContent = data.total_students ?? 0;
+
+        const perStudentEl = card.querySelector('[data-field="commission_per_student"]');
+        perStudentEl.textContent = data.commission_per_student != null
+            ? `Rp ${formatCurrency(data.commission_per_student)}`
+            : '-';
+
+        card.querySelector('[data-field="total_commission"]').textContent =
+            `Rp ${formatCurrency(data.total_commission)}`;
+
+        const messageEl = document.querySelector('[data-field="message"]');
+        if (messageEl) {
+            if (data.available || !data.message) {
+                messageEl.hidden = true;
+                messageEl.textContent = '';
+            } else {
+                messageEl.hidden = false;
+                messageEl.textContent = data.message;
+                messageEl.className = 'mt-4 text-sm text-red-600';
+            }
+        }
+
+        const metaEl = document.querySelector('[data-field="meta"]');
+        if (metaEl && (data.presenter_category || data.pmb_period_label)) {
+            metaEl.textContent = `${data.presenter_category ?? '-'} · ${data.pmb_period_label ?? '-'}`;
+        }
+    }
+
+    async function refreshCommissionPreview() {
+        const presenterId = document.getElementById('presenter_id')?.value;
+        const pmbPeriodId = document.getElementById('pmb_period_id')?.value;
+        if (!presenterId || !pmbPeriodId) return;
+
+        try {
+            const params = new URLSearchParams({
+                presenter_id: presenterId,
+                pmb_period_id: pmbPeriodId,
+            });
+            const res = await fetch(`${commissionPreviewUrl}?${params.toString()}`);
+            const data = await res.json();
+            renderCommissionPreview(data);
+        } catch (e) {
+            // ignore transient network errors
+        }
+    }
+
+    document.getElementById('presenter_id')?.addEventListener('change', refreshCommissionPreview);
+    document.getElementById('pmb_period_id')?.addEventListener('change', refreshCommissionPreview);
     </script>
     @endpush
 </x-admin-layout>

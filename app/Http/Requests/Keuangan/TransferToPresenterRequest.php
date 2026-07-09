@@ -19,7 +19,7 @@ class TransferToPresenterRequest extends FormRequest
      */
     public function rules(): array
     {
-        $request = $this->route('presenter_request');
+        $request = $this->route('presenter_request') ?? $this->route('presenterRequest');
         $totalCommission = (float) ($request?->total_commission ?? 0);
         $transferAmount = (float) $this->input('transfer_amount', $totalCommission);
 
@@ -58,7 +58,9 @@ class TransferToPresenterRequest extends FormRequest
 
     public function presenter(): ?Presenter
     {
-        return $this->route('presenter_request')?->presenter;
+        $request = $this->route('presenter_request') ?? $this->route('presenterRequest');
+
+        return $request?->presenter;
     }
 
     /**

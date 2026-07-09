@@ -14,6 +14,7 @@ use App\Models\PresenterRequest;
 use App\Models\PresenterRequestDetail;
 use App\Models\PmbPeriod;
 use App\Services\AuditLogService;
+use App\Services\CommissionCalculationService;
 use App\Services\PaymentProofService;
 use App\Services\PresenterRequestSubmitService;
 use App\Support\NotificationFlash;
@@ -30,6 +31,7 @@ class PresenterRequestController extends Controller
         private readonly RequestCodeGenerator $requestCodeGenerator,
         private readonly PresenterRequestSubmitService $submitService,
         private readonly PaymentProofService $paymentProofService,
+        private readonly CommissionCalculationService $commissionCalculator,
     ) {}
 
     public function index(Request $request): View
@@ -197,7 +199,14 @@ class PresenterRequestController extends Controller
 
         $presenterRequest->load(['presenter.category', 'pmbPeriod', 'details', 'submitter', 'creator', 'notificationLogs' => fn ($q) => $q->latest('created_at')]);
 
-        return view('presenter-requests.show', ['request' => $presenterRequest]);
+        $commissionPreview = $presenterRequest->isEditable()
+            ? $this->commissionCalculator->preview($presenterRequest)
+            : null;
+
+        return view('presenter-requests.show', [
+            'request' => $presenterRequest,
+            'commissionPreview' => $commissionPreview,
+        ]);
     }
 
     public function edit(PresenterRequest $presenterRequest): View
@@ -212,6 +221,7 @@ class PresenterRequestController extends Controller
             'request' => $presenterRequest,
             'periods' => $periods,
             'presenters' => $presenters,
+            'commissionPreview' => $this->commissionCalculator->preview($presenterRequest),
         ]);
     }
 
@@ -293,6 +303,19 @@ class PresenterRequestController extends Controller
             'blocking' => $blocking,
             'warnings' => $warnings,
         ]);
+    }
+
+    public function commissionPreview(Request $httpRequest, PresenterRequest $presenterRequest): JsonResponse
+    {
+        $this->authorize('view', $presenterRequest);
+
+        $preview = $this->commissionCalculator->preview(
+            $presenterRequest,
+            $httpRequest->integer('presenter_id') ?: null,
+            $httpRequest->integer('pmb_period_id') ?: null,
+        );
+
+        return response()->json($preview);
     }
 
     public function presenterInfo(Presenter $presenter): JsonResponse

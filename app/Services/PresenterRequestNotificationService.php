@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\AuditAction;
 use App\Enums\NotificationStatus;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
@@ -18,6 +17,7 @@ class PresenterRequestNotificationService
     public function __construct(
         private readonly KirimiService $kirimi,
         private readonly AuditLogService $auditLog,
+        private readonly MobileNotificationService $mobileNotifications,
     ) {}
 
     public function notifySubmittedToVerifikator(PresenterRequest $request): NotificationResult
@@ -36,6 +36,8 @@ class PresenterRequestNotificationService
         foreach ($verifikators as $verifikator) {
             $result->merge($this->dispatchToUser($request, $verifikator, $message));
         }
+
+        $this->mobileNotifications->notifySubmittedToVerifikator($request);
 
         return $result;
     }
@@ -56,7 +58,10 @@ class PresenterRequestNotificationService
             $request->rejection_reason ?? '-'
         );
 
-        return $this->dispatchToUser($request, $admin, $message);
+        $result = $this->dispatchToUser($request, $admin, $message);
+        $this->mobileNotifications->notifyRejectedToAdmin($request);
+
+        return $result;
     }
 
     public function notifyApprovedToAdmin(PresenterRequest $request): NotificationResult
@@ -76,7 +81,10 @@ class PresenterRequestNotificationService
             number_format((float) $request->total_commission, 0, ',', '.')
         );
 
-        return $this->dispatchToUser($request, $admin, $message);
+        $result = $this->dispatchToUser($request, $admin, $message);
+        $this->mobileNotifications->notifyApprovedToAdmin($request);
+
+        return $result;
     }
 
     public function notifyTransferredToFinance(PresenterRequest $request): NotificationResult
@@ -104,7 +112,10 @@ class PresenterRequestNotificationService
                 ->first();
 
             if ($financeUser) {
-                return $this->dispatchToUser($request, $financeUser, $message);
+                $result = $this->dispatchToUser($request, $financeUser, $message);
+                $this->mobileNotifications->notifyTransferredToFinance($request);
+
+                return $result;
             }
         }
 
@@ -116,6 +127,8 @@ class PresenterRequestNotificationService
         foreach ($financeUsers as $financeUser) {
             $result->merge($this->dispatchToUser($request, $financeUser, $message));
         }
+
+        $this->mobileNotifications->notifyTransferredToFinance($request);
 
         return $result;
     }
@@ -142,7 +155,10 @@ class PresenterRequestNotificationService
         }
 
         if ($verifikator) {
-            return $this->dispatchToUser($request, $verifikator, $message);
+            $result = $this->dispatchToUser($request, $verifikator, $message);
+            $this->mobileNotifications->notifyFinanceReceivedToVerifikator($request);
+
+            return $result;
         }
 
         $result = new NotificationResult;
@@ -154,6 +170,8 @@ class PresenterRequestNotificationService
         foreach ($verifikators as $user) {
             $result->merge($this->dispatchToUser($request, $user, $message));
         }
+
+        $this->mobileNotifications->notifyFinanceReceivedToVerifikator($request);
 
         return $result;
     }
@@ -197,6 +215,8 @@ class PresenterRequestNotificationService
             $result->merge($this->dispatchToUser($request, $admin, $adminMessage));
         }
 
+        $this->mobileNotifications->notifyTransferredToPresenter($request);
+
         return $result;
     }
 
@@ -226,6 +246,8 @@ class PresenterRequestNotificationService
         if ($request->presenter) {
             $result->merge($this->dispatchToPresenter($request, $request->presenter, $presenterMessage));
         }
+
+        $this->mobileNotifications->notifyClosed($request);
 
         return $result;
     }

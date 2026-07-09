@@ -24,3 +24,10 @@ Homestead.yaml
 Thumbs.db
 scripts/.github-token
 .github-token
+
+# Uploaded files (local dev only — never commit)
+/storage/uploads/**
+!/storage/uploads/.gitkeep
+!/storage/uploads/payment_proofs/.gitkeep
+!/storage/uploads/verifikator_transfers/.gitkeep
+!/storage/uploads/presenter_transfers/.gitkeep

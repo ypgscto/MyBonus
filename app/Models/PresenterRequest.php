@@ -156,4 +156,13 @@ class PresenterRequest extends Model
 
         return $this->request_code.' : '.$nims->filter()->implode(', ');
     }
+
+    public function paymentDate(): ?\Illuminate\Support\Carbon
+    {
+        $details = $this->relationLoaded('details')
+            ? $this->details->sortBy('id')
+            : $this->details()->orderBy('id')->get();
+
+        return $details->first(fn ($detail) => $detail->payment_date !== null)?->payment_date;
+    }
 }

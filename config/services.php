@@ -31,9 +31,14 @@ return [
 
     'kirimi' => [
         'api_url' => env('KIRIMI_API_URL', 'https://api.kirimi.id/v1/send-message'),
-        'user_code' => env('KIRIMI_USER_CODE','KMX7RZ0426'),
-        'secret' => env('KIRIMI_SECRET','41269fcef358bde6998262e09b5b80ceb631c6833517b2fefcfdf97b2357c2bd'),
-        'device_id' => env('KIRIMI_DEVICE_ID','D-M0CSD')
+        'user_code' => env('KIRIMI_USER_CODE', ''),
+        'secret' => env('KIRIMI_SECRET', '41269fcef358bde6998262e09b5b80ceb631c6833517b2fefcfdf97b2357c2bd'),
+        'device_id' => env('KIRIMI_DEVICE_ID', ''),
+    ],
+
+    'fcm' => [
+        'api_url' => env('FCM_API_URL', 'https://fcm.googleapis.com/fcm/send'),
+        'server_key' => env('FCM_SERVER_KEY', ''),
     ],
 
 ];

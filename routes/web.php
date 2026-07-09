@@ -102,6 +102,7 @@ Route::middleware(['auth', 'active', 'must_change_password'])->group(function ()
         Route::get('presenter-requests/history', [PresenterRequestController::class, 'history'])->name('presenter-requests.history');
         Route::get('presenter-requests/presenters/{presenter}/info', [PresenterRequestController::class, 'presenterInfo'])->name('presenter-requests.presenter-info');
         Route::get('presenter-requests/{presenter_request}/check-nim', [PresenterRequestController::class, 'checkNim'])->name('presenter-requests.check-nim');
+        Route::get('presenter-requests/{presenter_request}/commission-preview', [PresenterRequestController::class, 'commissionPreview'])->name('presenter-requests.commission-preview');
         Route::get('presenter-requests/{presenter_request}/edit', [PresenterRequestController::class, 'edit'])->name('presenter-requests.edit');
         Route::put('presenter-requests/{presenter_request}', [PresenterRequestController::class, 'update'])->name('presenter-requests.update');
         Route::post('presenter-requests/{presenter_request}/submit', [PresenterRequestController::class, 'submit'])->name('presenter-requests.submit');

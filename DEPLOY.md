@@ -305,6 +305,57 @@ Token **tidak** disimpan di URL remote Git setelah pull selesai.
 
 ---
 
+## MyBonus Mobile API (production)
+
+Setelah deploy backend, aplikasi Flutter **MyBonus** memanggil:
+
+```
+{APP_URL}/api/v1
+```
+
+Contoh jika `APP_URL=http://bonusku.test`:
+
+```
+http://bonusku.test/api/v1
+```
+
+### Variabel `.env` penting (API)
+
+| Variabel | Production |
+|----------|------------|
+| `APP_URL` | URL publik Laravel (tanpa `/public` jika document root sudah ke `public`) |
+| `API_BASE_URL` | Sama dengan `APP_URL` |
+| `API_TOKEN_EXPIRATION` | `10080` (7 hari) atau sesuai kebijakan |
+| `APP_DEBUG` | `false` |
+| `FCM_SERVER_KEY` | Opsional — untuk push notification |
+
+Template lengkap: salin `.env.production.example` ke `.env` pada server.
+
+### Cek API setelah deploy
+
+```bat
+curl http://bonusku.test/up
+curl -X POST http://bonusku.test/api/v1/auth/login -H "Content-Type: application/json" -d "{\"email\":\"admin@gmail.com\",\"password\":\"12345678\",\"device_name\":\"test\"}"
+```
+
+### Build APK MyBonus (arahkan ke server production)
+
+```bat
+cd mobile
+flutter build apk --release --dart-define=API_BASE_URL=http://bonusku.test
+```
+
+Ganti URL dengan domain production Anda (mis. `https://bonusku.stikesgs.ac.id`).
+
+### Migrasi baru (mobile)
+
+Deploy script sudah menjalankan `php artisan migrate --force` yang mencakup:
+
+- `personal_access_tokens` (Sanctum)
+- `app_notifications`, `device_tokens` (notifikasi mobile)
+
+---
+
 ## Ringkasan script
 
 | Script | Kapan dipakai |

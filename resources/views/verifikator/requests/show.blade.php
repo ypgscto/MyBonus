@@ -26,6 +26,7 @@
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div><span class="text-xs text-slate-500 block">Kode Permintaan</span><span class="text-sm font-semibold text-slate-900">{{ $request->request_code }}</span></div>
                     <div><span class="text-xs text-slate-500 block">Tanggal Pengajuan</span><span class="text-sm text-slate-900">{{ $request->request_date->format('d M Y') }}</span></div>
+                    <div><span class="text-xs text-slate-500 block">Tanggal Bayar</span><span class="text-sm text-slate-900">{{ $request->paymentDate()?->format('d M Y') ?? '-' }}</span></div>
                     <div><span class="text-xs text-slate-500 block">Periode PMB</span><span class="text-sm text-slate-900">{{ $request->pmbPeriod?->academic_year }} – {{ $request->pmbPeriod?->wave }}</span></div>
                     <div><span class="text-xs text-slate-500 block">Dikirim</span><span class="text-sm text-slate-900">{{ $request->submitted_at?->format('d M Y H:i') ?? '-' }}</span></div>
                     @if ($request->admin_note)
@@ -39,6 +40,21 @@
                     @endif
                 </div>
             </x-card>
+
+            @php
+                $paymentProofDetail = $request->details->first(fn ($detail) => filled($detail->payment_proof_file));
+            @endphp
+            @can('download-payment-proof', $request)
+                @if ($paymentProofDetail)
+                    <x-card header="Bukti Pembayaran Admin PMB">
+                        <p class="mb-3 text-sm text-slate-600">Bukti pembayaran yang diunggah Admin PMB saat mengajukan permintaan ini.</p>
+                        <a href="{{ route('payment-proofs.download', $paymentProofDetail) }}" target="_blank" class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100">
+                            <x-icon name="document" class="h-4 w-4" />
+                            Lihat Bukti Pembayaran Admin PMB
+                        </a>
+                    </x-card>
+                @endif
+            @endcan
 
             <x-card header="Komisi">
                 @if ($commission)
@@ -60,9 +76,6 @@
                                 <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">#</th>
                                 <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">NIM</th>
                                 <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Nama</th>
-                                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Tgl Lahir</th>
-                                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Tgl Bayar</th>
-                                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Bukti Pembayaran</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 bg-white">
@@ -71,17 +84,6 @@
                                     <td class="px-5 py-3 text-sm text-slate-900">{{ $loop->iteration }}</td>
                                     <td class="px-5 py-3 text-sm text-slate-900">{{ $detail->nim }}</td>
                                     <td class="px-5 py-3 text-sm text-slate-900">{{ $detail->student_name }}</td>
-                                    <td class="px-5 py-3 text-sm text-slate-600">{{ $detail->birth_date?->format('d/m/Y') ?? '-' }}</td>
-                                    <td class="px-5 py-3 text-sm text-slate-600">{{ $detail->payment_date?->format('d/m/Y') ?? '-' }}</td>
-                                    <td class="px-5 py-3 text-sm">
-                                        @if ($detail->payment_proof_file)
-                                            <a href="{{ route('payment-proofs.download', $detail) }}" target="_blank" class="inline-flex items-center rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-700 hover:bg-slate-50" title="Unduh">
-                                                <x-icon name="document" class="h-4 w-4" />
-                                            </a>
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -187,6 +187,9 @@ Write-Step "Mengatur .env production"
 Set-EnvLine ".env" "APP_ENV" "production"
 Set-EnvLine ".env" "APP_DEBUG" "false"
 Set-EnvLine ".env" "APP_URL" $AppUrl
+Set-EnvLine ".env" "API_BASE_URL" $AppUrl
+Set-EnvLine ".env" "API_TOKEN_EXPIRATION" "10080"
+Set-EnvLine ".env" "LOG_LEVEL" "warning"
 Set-EnvLine ".env" "DB_HOST" $DbHost
 Set-EnvLine ".env" "DB_PORT" $DbPort
 Set-EnvLine ".env" "DB_DATABASE" $DbName
@@ -239,5 +242,9 @@ Write-Host "  1. Menu Laragon - www - buat virtual host bonusku (jika belum)" -F
 Write-Host "  2. Document root arahkan ke: $AppDir\public" -ForegroundColor White
 Write-Host "  3. Start All, buka $AppUrl di browser" -ForegroundColor White
 Write-Host "  4. Ganti password super admin segera setelah login" -ForegroundColor White
+Write-Host ""
+Write-Host "MyBonus Mobile API:" -ForegroundColor Yellow
+Write-Host "  Base URL: $AppUrl/api/v1" -ForegroundColor White
+Write-Host "  Build APK: flutter build apk --dart-define=API_BASE_URL=$AppUrl" -ForegroundColor White
 Write-Host ""
 Write-Host "Update berikutnya jalankan: scripts\deploy-production.bat" -ForegroundColor Cyan

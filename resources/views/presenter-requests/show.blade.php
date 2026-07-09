@@ -20,7 +20,14 @@
                     <div><span class="text-xs font-medium text-bonusku-slate block">Periode PMB</span><span class="text-sm font-medium text-bonusku-navy">{{ $request->pmbPeriod?->academic_year }} – {{ $request->pmbPeriod?->wave }}</span></div>
                     <div><span class="text-xs font-medium text-bonusku-slate block">Tanggal Pengajuan</span><span class="text-sm text-bonusku-navy">{{ $request->request_date->format('d M Y') }}</span></div>
                     <div><span class="text-xs font-medium text-bonusku-slate block">Dikirim</span><span class="text-sm text-bonusku-navy">{{ $request->submitted_at?->format('d M Y H:i') ?? '-' }}</span></div>
-                    <div><span class="text-xs font-medium text-bonusku-slate block">Total Komisi</span><span class="text-lg font-bold text-amber-600">Rp {{ number_format($request->total_commission, 0, ',', '.') }}</span></div>
+                    @if ($request->isEditable() && ! empty($commissionPreview))
+                        <div><span class="text-xs font-medium text-bonusku-slate block">Total Komisi</span>
+                            <span class="text-lg font-bold text-amber-600">Rp {{ number_format($commissionPreview['total_commission'], 0, ',', '.') }}</span>
+                            <span class="mt-1 block text-xs text-amber-700">Estimasi live (belum dikunci)</span>
+                        </div>
+                    @else
+                        <div><span class="text-xs font-medium text-bonusku-slate block">Total Komisi</span><span class="text-lg font-bold text-amber-600">Rp {{ number_format($request->total_commission, 0, ',', '.') }}</span></div>
+                    @endif
                     @if ($request->admin_note)
                         <div class="sm:col-span-2 rounded-xl bg-slate-50 p-3"><span class="text-xs font-medium text-bonusku-slate block">Catatan Admin</span><span class="text-sm text-bonusku-navy">{{ $request->admin_note }}</span></div>
                     @endif

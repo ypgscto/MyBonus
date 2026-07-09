@@ -59,6 +59,28 @@ class PresenterRequestBankTransferNoteTest extends TestCase
         );
     }
 
+    public function test_payment_date_returns_first_detail_payment_date(): void
+    {
+        $request = $this->createRequest('PR-202607-0003');
+
+        PresenterRequestDetail::create([
+            'presenter_request_id' => $request->id,
+            'nim' => '111111',
+            'student_name' => 'Student A',
+            'payment_date' => '2026-07-09',
+        ]);
+        PresenterRequestDetail::create([
+            'presenter_request_id' => $request->id,
+            'nim' => '7776',
+            'student_name' => 'Student B',
+            'payment_date' => '2026-07-09',
+        ]);
+
+        $request->load('details');
+
+        $this->assertSame('2026-07-09', $request->paymentDate()?->toDateString());
+    }
+
     private function createRequest(string $requestCode): PresenterRequest
     {
         $admin = User::factory()->create(['role' => UserRole::AdminPmb]);

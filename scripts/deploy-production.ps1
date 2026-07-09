@@ -96,6 +96,7 @@ php artisan view:cache
 
 Write-Host ""
 Write-Host "Deploy selesai." -ForegroundColor Green
+Write-Host "Mobile API: $((Get-Content .env | Where-Object { $_ -match '^APP_URL=' }) -replace 'APP_URL=','')/api/v1" -ForegroundColor Cyan
 if ($Seed) {
     Write-Host "Login super admin: bashar.ypgs@gmail.com / 12345678" -ForegroundColor Green
     Write-Host "Ganti password segera setelah login pertama." -ForegroundColor Yellow

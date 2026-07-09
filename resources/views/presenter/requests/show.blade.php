@@ -45,19 +45,17 @@
         <table class="min-w-full divide-y divide-slate-100">
             <thead class="bonusku-table-head">
                 <tr>
+                    <th class="px-5 py-3 text-left">#</th>
                     <th class="px-5 py-3 text-left">NIM</th>
                     <th class="px-5 py-3 text-left">Nama</th>
-                    <th class="px-5 py-3 text-left">Tgl Lahir</th>
-                    <th class="px-5 py-3 text-left">Tgl Bayar</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
                 @foreach ($request->details as $detail)
                     <tr>
+                        <td class="px-5 py-3 text-sm">{{ $loop->iteration }}</td>
                         <td class="px-5 py-3 text-sm">{{ $detail->nim }}</td>
                         <td class="px-5 py-3 text-sm">{{ $detail->student_name }}</td>
-                        <td class="px-5 py-3 text-sm">{{ $detail->birth_date?->format('d/m/Y') }}</td>
-                        <td class="px-5 py-3 text-sm">{{ $detail->payment_date?->format('d/m/Y') }}</td>
                     </tr>
                 @endforeach
             </tbody>

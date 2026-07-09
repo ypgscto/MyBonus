@@ -21,7 +21,7 @@ class TransferToFinanceRequest extends FormRequest
      */
     public function rules(): array
     {
-        $request = $this->route('presenter_request');
+        $request = $this->route('presenter_request') ?? $this->route('presenterRequest');
         $totalCommission = (float) ($request?->total_commission ?? 0);
         $transferAmount = (float) $this->input('transfer_amount', $totalCommission);
 

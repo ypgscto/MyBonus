@@ -4,16 +4,17 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Models\Presenter;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * @var list<string>
@@ -54,7 +55,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function presenter(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function presenter(): HasOne
     {
         return $this->hasOne(Presenter::class);
     }
