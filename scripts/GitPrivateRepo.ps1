@@ -34,7 +34,7 @@ function Resolve-GitHubToken {
 function Get-CleanGitHubRemoteUrl {
     param(
         [string]$RepoOwner = "ypgscto",
-        [string]$RepoName = "bonusku"
+        [string]$RepoName = "MyBonus"
     )
 
     return "https://github.com/${RepoOwner}/${RepoName}.git"
@@ -43,7 +43,7 @@ function Get-CleanGitHubRemoteUrl {
 function Reset-GitRemoteToClean {
     param(
         [string]$RepoOwner = "ypgscto",
-        [string]$RepoName = "bonusku"
+        [string]$RepoName = "MyBonus"
     )
 
     $cleanUrl = Get-CleanGitHubRemoteUrl -RepoOwner $RepoOwner -RepoName $RepoName
@@ -56,7 +56,7 @@ function Test-GitHubTokenAccess {
         [Parameter(Mandatory = $true)]
         [string]$Token,
         [string]$RepoOwner = "ypgscto",
-        [string]$RepoName = "bonusku"
+        [string]$RepoName = "MyBonus"
     )
 
     try {
@@ -95,7 +95,7 @@ function Test-GitHubTokenAccess {
 Token tidak punya akses ke ${RepoOwner}/${RepoName}.
 
 Periksa PAT fine-grained:
-  - Repository access: pilih ypgscto/bonusku
+  - Repository access: pilih ypgscto/MyBonus
   - Permissions: Contents = Read, Metadata = Read
   - Jika org pakai SSO: buka token di GitHub, klik Authorize untuk org ypgscto
 "@
@@ -145,7 +145,7 @@ function Invoke-PrivateGitPull {
         [string]$AppDir,
         [string]$Branch = "main",
         [string]$RepoOwner = "ypgscto",
-        [string]$RepoName = "bonusku",
+        [string]$RepoName = "MyBonus",
         [string]$GitToken = "",
         [string]$TokenFile = ""
     )

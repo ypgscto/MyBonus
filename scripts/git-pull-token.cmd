@@ -14,8 +14,8 @@ if "%~1"=="" (
 
 set "GH_TOKEN=%~1"
 set "APP_DIR=C:\webserver\www\bonusku"
-set "CLEAN_URL=https://github.com/ypgscto/bonusku.git"
-set "AUTH_URL=https://x-access-token:%GH_TOKEN%@github.com/ypgscto/bonusku.git"
+set "CLEAN_URL=https://github.com/ypgscto/MyBonus.git"
+set "AUTH_URL=https://x-access-token:%GH_TOKEN%@github.com/ypgscto/MyBonus.git"
 
 if not exist "%APP_DIR%\artisan" (
     echo Error: Project tidak ditemukan di %APP_DIR%
@@ -52,7 +52,7 @@ exit /b 0
 :FAIL
 echo.
 echo Pull gagal. Kemungkinan:
-echo   - Token tidak punya akses repo ypgscto/bonusku
+echo   - Token tidak punya akses repo ypgscto/MyBonus
 echo   - Hapus kredensial lama di Credential Manager Windows
 echo   - Buat PAT baru: Contents Read + Metadata Read
 git remote set-url origin "%CLEAN_URL%"

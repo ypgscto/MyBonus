@@ -7,7 +7,7 @@ param(
     [string]$GitToken = "",
     [string]$TokenFile = "",
     [string]$RepoOwner = "ypgscto",
-    [string]$RepoName = "bonusku"
+    [string]$RepoName = "MyBonus"
 )
 
 $ErrorActionPreference = "Stop"

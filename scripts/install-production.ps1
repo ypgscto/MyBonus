@@ -11,7 +11,7 @@
 
 param(
     [string]$AppDir = "C:\webserver\www\bonusku",
-    [string]$RepoUrl = "https://github.com/ypgscto/bonusku.git",
+    [string]$RepoUrl = "https://github.com/ypgscto/MyBonus.git",
     [string]$Branch = "main",
     [string]$AppUrl = "http://bonusku.test",
     [string]$DbHost = "127.0.0.1",

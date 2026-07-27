@@ -38,7 +38,7 @@ function Assert-Command([string]$Name) {
 }
 
 if (-not (Test-Path $AppDir)) {
-    throw "Folder tidak ditemukan: $AppDir`nClone repo dulu: git clone https://github.com/ypgscto/bonusku.git $AppDir"
+    throw "Folder tidak ditemukan: $AppDir`nClone repo dulu: git clone https://github.com/ypgscto/MyBonus.git $AppDir"
 }
 
 Set-Location $AppDir
