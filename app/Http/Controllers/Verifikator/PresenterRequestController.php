@@ -97,6 +97,7 @@ class PresenterRequestController extends Controller
             'rejector',
             'verifikatorTransfer.financeUser',
             'verifikatorTransfer.transferrer',
+            'presenterTransfer',
         ]);
 
         $previewCommission = null;
@@ -119,6 +120,9 @@ class PresenterRequestController extends Controller
             PresenterRequestStatus::ApprovedByVerifikator => 'verifikator.requests.to-transfer',
             PresenterRequestStatus::RejectedByVerifikator => 'verifikator.requests.rejected',
             PresenterRequestStatus::TransferredToFinance => 'verifikator.requests.transfer-history',
+            PresenterRequestStatus::ReceivedByFinance,
+            PresenterRequestStatus::TransferredToPresenter,
+            PresenterRequestStatus::Closed => 'verifikator.requests.transfer-history',
             default => 'verifikator.requests.pending',
         };
 

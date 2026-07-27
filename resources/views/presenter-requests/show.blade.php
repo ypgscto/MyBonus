@@ -64,6 +64,30 @@
                     </tbody>
                 </table>
             </x-table-card>
+
+            @if ($request->presenterTransfer)
+                <x-card header="Transfer Keuangan ke Presenter">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div><span class="text-xs font-medium text-bonusku-slate block">Tanggal Transfer</span><span class="text-sm text-bonusku-navy">{{ $request->presenterTransfer->transfer_date->format('d M Y') }}</span></div>
+                        <div><span class="text-xs font-medium text-bonusku-slate block">Nominal Transfer</span><span class="text-sm font-semibold text-bonusku-navy">Rp {{ number_format($request->presenterTransfer->transfer_amount, 0, ',', '.') }}</span></div>
+                        <div><span class="text-xs font-medium text-bonusku-slate block">Bank Tujuan</span><span class="text-sm text-bonusku-navy">{{ $request->presenterTransfer->destination_bank }}</span></div>
+                        <div><span class="text-xs font-medium text-bonusku-slate block">Rekening Tujuan</span><span class="text-sm text-bonusku-navy">{{ $request->presenterTransfer->destination_account_number }}<br><span class="text-bonusku-slate">a.n. {{ $request->presenterTransfer->destination_account_name }}</span></span></div>
+                        @if ($request->finance_note)
+                            <div class="sm:col-span-2"><span class="text-xs font-medium text-bonusku-slate block">Catatan Keuangan</span><span class="text-sm text-bonusku-navy">{{ $request->finance_note }}</span></div>
+                        @endif
+                        @if ($request->presenterTransfer->note)
+                            <div class="sm:col-span-2"><span class="text-xs font-medium text-bonusku-slate block">Catatan Selisih</span><span class="text-sm text-bonusku-navy">{{ $request->presenterTransfer->note }}</span></div>
+                        @endif
+                        @if ($request->presenterTransfer->transfer_proof_file)
+                            <div class="sm:col-span-2">
+                                <a href="{{ route('presenter-transfer-proofs.download', $request) }}" target="_blank" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-bonusku-navy hover:bg-indigo-50 hover:text-indigo-600">
+                                    <x-icon name="document" class="h-4 w-4" /> Unduh Bukti Transfer ke Presenter
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </x-card>
+            @endif
         </div>
 
         <x-card header="Informasi Presenter">

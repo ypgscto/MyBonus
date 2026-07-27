@@ -141,6 +141,30 @@
                 </x-card>
             @endif
 
+            @if ($request->presenterTransfer)
+                <x-card header="Transfer Keuangan ke Presenter">
+                    <dl class="space-y-3 text-sm">
+                        <div><dt class="text-xs text-slate-500">Tanggal Transfer</dt><dd class="text-slate-900">{{ $request->presenterTransfer->transfer_date->format('d M Y') }}</dd></div>
+                        <div><dt class="text-xs text-slate-500">Nominal Transfer</dt><dd class="text-slate-900">Rp {{ number_format($request->presenterTransfer->transfer_amount, 0, ',', '.') }}</dd></div>
+                        <div><dt class="text-xs text-slate-500">Bank Tujuan</dt><dd class="text-slate-900">{{ $request->presenterTransfer->destination_bank }}</dd></div>
+                        <div><dt class="text-xs text-slate-500">Rekening Tujuan</dt><dd class="text-slate-900">{{ $request->presenterTransfer->destination_account_number }}<br><span class="text-slate-600">a.n. {{ $request->presenterTransfer->destination_account_name }}</span></dd></div>
+                        @if ($request->presenterTransfer->note)
+                            <div><dt class="text-xs text-slate-500">Catatan</dt><dd class="text-slate-900">{{ $request->presenterTransfer->note }}</dd></div>
+                        @endif
+                        @if ($request->presenterTransfer->transfer_proof_file)
+                            <div>
+                                <dt class="text-xs text-slate-500 mb-1">Bukti Transfer</dt>
+                                <dd>
+                                    <a href="{{ route('presenter-transfer-proofs.download', $request) }}" target="_blank" class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
+                                        <x-icon name="document" class="h-4 w-4" /> Unduh Bukti Transfer ke Presenter
+                                    </a>
+                                </dd>
+                            </div>
+                        @endif
+                    </dl>
+                </x-card>
+            @endif
+
             @if ($canTransfer)
                 <x-card header="Transfer ke Keuangan">
                     <form method="POST" action="{{ route('verifikator.requests.transfer', $request) }}" enctype="multipart/form-data" id="transferForm">

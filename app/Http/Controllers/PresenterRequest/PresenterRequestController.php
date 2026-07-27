@@ -17,12 +17,16 @@ use App\Services\AuditLogService;
 use App\Services\CommissionCalculationService;
 use App\Services\PaymentProofService;
 use App\Services\PresenterRequestSubmitService;
+use App\Services\PresenterTransferProofService;
 use App\Support\NotificationFlash;
 use App\Support\RequestCodeGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PresenterRequestController extends Controller
 {
@@ -32,6 +36,7 @@ class PresenterRequestController extends Controller
         private readonly PresenterRequestSubmitService $submitService,
         private readonly PaymentProofService $paymentProofService,
         private readonly CommissionCalculationService $commissionCalculator,
+        private readonly PresenterTransferProofService $presenterTransferProofService,
     ) {}
 
     public function index(Request $request): View
@@ -197,7 +202,15 @@ class PresenterRequestController extends Controller
     {
         $this->authorize('view', $presenterRequest);
 
-        $presenterRequest->load(['presenter.category', 'pmbPeriod', 'details', 'submitter', 'creator', 'notificationLogs' => fn ($q) => $q->latest('created_at')]);
+        $presenterRequest->load([
+            'presenter.category',
+            'pmbPeriod',
+            'details',
+            'submitter',
+            'creator',
+            'presenterTransfer',
+            'notificationLogs' => fn ($q) => $q->latest('created_at'),
+        ]);
 
         $commissionPreview = $presenterRequest->isEditable()
             ? $this->commissionCalculator->preview($presenterRequest)
@@ -207,6 +220,17 @@ class PresenterRequestController extends Controller
             'request' => $presenterRequest,
             'commissionPreview' => $commissionPreview,
         ]);
+    }
+
+    public function downloadPresenterTransferProof(PresenterRequest $presenterRequest): StreamedResponse
+    {
+        Gate::authorize('download-presenter-transfer-proof', $presenterRequest);
+
+        $transfer = $presenterRequest->presenterTransfer;
+        abort_unless($transfer?->transfer_proof_file, 404);
+        abort_unless($this->presenterTransferProofService->exists($transfer->transfer_proof_file), 404);
+
+        return Storage::disk('presenter_transfers')->download($transfer->transfer_proof_file);
     }
 
     public function edit(PresenterRequest $presenterRequest): View

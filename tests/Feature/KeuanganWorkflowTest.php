@@ -157,6 +157,44 @@ class KeuanganWorkflowTest extends TestCase
         );
     }
 
+    public function test_verifikator_and_admin_pmb_can_download_presenter_transfer_proof(): void
+    {
+        $request = $this->createTransferredToPresenterRequest(1);
+        Storage::disk('presenter_transfers')->put('presenter-proof.pdf', 'fake-proof');
+
+        $this->actingAs($this->verifikator)
+            ->get(route('presenter-transfer-proofs.download', $request))
+            ->assertOk();
+
+        $this->actingAs($this->admin)
+            ->get(route('presenter-transfer-proofs.download', $request))
+            ->assertOk();
+
+        $this->actingAs($this->verifikator)
+            ->get(route('verifikator.requests.show', $request))
+            ->assertOk()
+            ->assertSee('Unduh Bukti Transfer ke Presenter')
+            ->assertSee(route('presenter-transfer-proofs.download', $request), false);
+
+        $this->actingAs($this->admin)
+            ->get(route('presenter-requests.show', $request))
+            ->assertOk()
+            ->assertSee('Unduh Bukti Transfer ke Presenter')
+            ->assertSee(route('presenter-transfer-proofs.download', $request), false);
+    }
+
+    public function test_admin_pmb_cannot_download_presenter_proof_for_other_admin_request(): void
+    {
+        $otherAdmin = User::factory()->create(['role' => UserRole::AdminPmb]);
+        $request = $this->createTransferredToPresenterRequest(1);
+        $request->update(['created_by' => $otherAdmin->id]);
+        Storage::disk('presenter_transfers')->put('presenter-proof.pdf', 'fake-proof');
+
+        $this->actingAs($this->admin)
+            ->get(route('presenter-transfer-proofs.download', $request))
+            ->assertForbidden();
+    }
+
     public function test_transfer_requires_note_when_amount_differs(): void
     {
         $request = $this->createReceivedByFinanceRequest(2);

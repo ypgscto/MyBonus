@@ -62,4 +62,17 @@ class PresenterRequestPolicy
     {
         return $this->update($user, $presenterRequest);
     }
+
+    public function downloadPresenterTransferProof(User $user, PresenterRequest $presenterRequest): bool
+    {
+        if ($presenterRequest->presenterTransfer === null) {
+            return false;
+        }
+
+        return match ($user->role) {
+            UserRole::SuperAdmin, UserRole::Verifikator, UserRole::Keuangan => true,
+            UserRole::AdminPmb => $presenterRequest->created_by === $user->id,
+            default => false,
+        };
+    }
 }
