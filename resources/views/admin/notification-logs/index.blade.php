@@ -74,6 +74,7 @@
                         <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Provider</th>
                         <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
                         <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Pesan</th>
+                        <th class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
@@ -97,11 +98,31 @@
                             </td>
                             <td class="px-5 py-3 text-sm text-slate-500 max-w-[240px]">
                                 {{ \Illuminate\Support\Str::limit($log->message, 80) }}
+                                @if ($log->status->value === 'failed' && filled($log->provider_response))
+                                    <div class="mt-1 text-xs text-red-600" title="{{ $log->provider_response }}">
+                                        {{ \Illuminate\Support\Str::limit($log->provider_response, 60) }}
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3 text-right text-sm">
+                                @if ($log->status === \App\Enums\NotificationStatus::Failed)
+                                    <form method="POST" action="{{ route('admin.notification-logs.resend', $log) }}" class="inline">
+                                        @csrf
+                                        <button type="submit"
+                                                data-confirm="Kirim ulang notifikasi WhatsApp ke {{ $log->recipient_phone }}?"
+                                                data-confirm-title="Kirim Ulang Notifikasi"
+                                                class="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100">
+                                            <x-icon name="send" class="h-3.5 w-3.5" /> Kirim Ulang
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="text-slate-400">-</span>
+                                @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-5 py-8 text-center text-sm text-slate-500">Belum ada data notification log.</td>
+                            <td colspan="10" class="px-5 py-8 text-center text-sm text-slate-500">Belum ada data notification log.</td>
                         </tr>
                     @endforelse
                 </tbody>

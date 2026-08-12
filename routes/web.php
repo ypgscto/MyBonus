@@ -119,6 +119,8 @@ Route::middleware(['auth', 'active', 'must_change_password'])->group(function ()
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
         Route::get('/admin/notification-logs', [NotificationLogController::class, 'index'])->name('admin.notification-logs.index');
+        Route::post('/admin/notification-logs/{notification_log}/resend', [NotificationLogController::class, 'resend'])
+            ->name('admin.notification-logs.resend');
 
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
         Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');

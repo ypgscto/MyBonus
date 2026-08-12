@@ -140,4 +140,90 @@ class NotificationLogPageTest extends TestCase
             ->get(route('admin.notification-logs.index'))
             ->assertForbidden();
     }
+
+    public function test_super_admin_can_resend_failed_notification(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+        $log = $this->createNotificationLog(NotificationStatus::Failed);
+
+        $this->actingAs($user)
+            ->post(route('admin.notification-logs.resend', $log))
+            ->assertRedirect(route('admin.notification-logs.index'))
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseHas('notification_logs', [
+            'presenter_request_id' => $log->presenter_request_id,
+            'recipient_phone' => '6281111111111',
+            'status' => NotificationStatus::Sent->value,
+        ]);
+
+        $this->assertEquals(2, NotificationLog::count());
+    }
+
+    public function test_super_admin_cannot_resend_sent_notification(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+        $log = $this->createNotificationLog(NotificationStatus::Sent);
+
+        $this->actingAs($user)
+            ->from(route('admin.notification-logs.index'))
+            ->post(route('admin.notification-logs.resend', $log))
+            ->assertRedirect()
+            ->assertSessionHasErrors('notification_log');
+
+        $this->assertEquals(1, NotificationLog::count());
+    }
+
+    public function test_notification_log_page_shows_resend_button_for_failed_logs(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::SuperAdmin]);
+        $this->createNotificationLog(NotificationStatus::Failed);
+
+        $this->actingAs($user)
+            ->get(route('admin.notification-logs.index'))
+            ->assertOk()
+            ->assertSee('Kirim Ulang');
+    }
+
+    private function createNotificationLog(NotificationStatus $status): NotificationLog
+    {
+        $admin = User::factory()->create(['role' => UserRole::AdminPmb]);
+        $category = PresenterCategory::create(['name' => 'Pegawai', 'status' => RecordStatus::Aktif]);
+        $period = PmbPeriod::create([
+            'academic_year' => '2026/2027',
+            'wave' => 'Gelombang 1',
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-12-31',
+            'status' => RecordStatus::Aktif,
+        ]);
+        $presenter = Presenter::create([
+            'presenter_category_id' => $category->id,
+            'name' => 'Presenter A',
+            'bank_name' => 'BCA',
+            'account_number' => '1234567890',
+            'account_holder_name' => 'Presenter A',
+            'phone' => '081234567890',
+            'status' => RecordStatus::Aktif,
+        ]);
+        $request = PresenterRequest::create([
+            'request_code' => 'PR-202607-0001',
+            'pmb_period_id' => $period->id,
+            'presenter_id' => $presenter->id,
+            'created_by' => $admin->id,
+            'status' => PresenterRequestStatus::Submitted,
+            'request_date' => now()->toDateString(),
+        ]);
+
+        return NotificationLog::create([
+            'presenter_request_id' => $request->id,
+            'recipient_role' => UserRole::Verifikator->value,
+            'recipient_name' => 'Verifikator',
+            'recipient_phone' => '6281111111111',
+            'message' => 'Halo Bapak/Ibu Verifikator, ada pengajuan baru.',
+            'provider' => 'kirimi',
+            'provider_response' => $status === NotificationStatus::Failed ? 'timeout' : 'ok',
+            'status' => $status,
+            'created_at' => now(),
+        ]);
+    }
 }
