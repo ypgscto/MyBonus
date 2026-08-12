@@ -73,6 +73,7 @@ return [
             ],
         ],
         ['label' => 'Laporan', 'route' => 'reports.index', 'route_prefix' => 'reports.', 'icon' => 'chart'],
+        ['label' => 'Notification Log', 'route' => 'admin.notification-logs.index', 'route_prefix' => 'admin.notification-logs.', 'icon' => 'bell'],
     ],
 
     'verifikator' => [

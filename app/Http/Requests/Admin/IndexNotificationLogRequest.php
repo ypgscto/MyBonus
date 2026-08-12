@@ -11,7 +11,7 @@ class IndexNotificationLogRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role === UserRole::SuperAdmin;
+        return in_array($this->user()?->role, [UserRole::SuperAdmin, UserRole::AdminPmb], true);
     }
 
     /**

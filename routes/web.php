@@ -118,9 +118,6 @@ Route::middleware(['auth', 'active', 'must_change_password'])->group(function ()
 
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
-        Route::get('/admin/notification-logs', [NotificationLogController::class, 'index'])->name('admin.notification-logs.index');
-        Route::post('/admin/notification-logs/{notification_log}/resend', [NotificationLogController::class, 'resend'])
-            ->name('admin.notification-logs.resend');
 
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
         Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
@@ -130,6 +127,12 @@ Route::middleware(['auth', 'active', 'must_change_password'])->group(function ()
         Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
         Route::patch('/users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('users.toggle-status');
         Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
+    });
+
+    Route::middleware('role:super_admin,admin_pmb')->group(function () {
+        Route::get('/admin/notification-logs', [NotificationLogController::class, 'index'])->name('admin.notification-logs.index');
+        Route::post('/admin/notification-logs/{notification_log}/resend', [NotificationLogController::class, 'resend'])
+            ->name('admin.notification-logs.resend');
     });
 
     Route::middleware('role:super_admin,admin_pmb')->prefix('reports')->name('reports.')->group(function () {

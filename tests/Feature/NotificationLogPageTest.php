@@ -132,6 +132,23 @@ class NotificationLogPageTest extends TestCase
             ->assertDontSee('PR-202607-0099');
     }
 
+    public function test_admin_pmb_can_view_and_resend_notification_logs(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::AdminPmb]);
+        $log = $this->createNotificationLog(NotificationStatus::Failed);
+
+        $this->actingAs($user)
+            ->get(route('admin.notification-logs.index'))
+            ->assertOk()
+            ->assertSee('Notification Log')
+            ->assertSee('Kirim Ulang');
+
+        $this->actingAs($user)
+            ->post(route('admin.notification-logs.resend', $log))
+            ->assertRedirect(route('admin.notification-logs.index'))
+            ->assertSessionHas('status');
+    }
+
     public function test_verifikator_cannot_access_notification_log_page(): void
     {
         $user = User::factory()->create(['role' => UserRole::Verifikator]);
