@@ -18,6 +18,7 @@ use App\Services\CommissionCalculationService;
 use App\Services\PaymentProofService;
 use App\Services\PresenterRequestSubmitService;
 use App\Services\PresenterTransferProofService;
+use App\Services\VerifikatorTransferProofService;
 use App\Support\NotificationFlash;
 use App\Support\RequestCodeGenerator;
 use Illuminate\Http\JsonResponse;
@@ -37,6 +38,7 @@ class PresenterRequestController extends Controller
         private readonly PaymentProofService $paymentProofService,
         private readonly CommissionCalculationService $commissionCalculator,
         private readonly PresenterTransferProofService $presenterTransferProofService,
+        private readonly VerifikatorTransferProofService $verifikatorTransferProofService,
     ) {}
 
     public function index(Request $request): View
@@ -231,6 +233,17 @@ class PresenterRequestController extends Controller
         abort_unless($this->presenterTransferProofService->exists($transfer->transfer_proof_file), 404);
 
         return Storage::disk('presenter_transfers')->download($transfer->transfer_proof_file);
+    }
+
+    public function downloadVerifikatorTransferProof(PresenterRequest $presenterRequest): StreamedResponse
+    {
+        Gate::authorize('download-verifikator-transfer-proof', $presenterRequest);
+
+        $transfer = $presenterRequest->verifikatorTransfer;
+        abort_unless($transfer?->transfer_proof_file, 404);
+        abort_unless($this->verifikatorTransferProofService->exists($transfer->transfer_proof_file), 404);
+
+        return Storage::disk('verifikator_transfers')->download($transfer->transfer_proof_file);
     }
 
     public function edit(PresenterRequest $presenterRequest): View

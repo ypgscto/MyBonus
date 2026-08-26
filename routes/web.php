@@ -145,6 +145,8 @@ Route::middleware(['auth', 'active', 'must_change_password'])->group(function ()
         Route::get('payment-proofs/{detail}/download', [PresenterRequestDetailController::class, 'download'])->name('payment-proofs.download');
         Route::get('presenter-transfer-proofs/{presenter_request}/download', [PresenterRequestController::class, 'downloadPresenterTransferProof'])
             ->name('presenter-transfer-proofs.download');
+        Route::get('verifikator-transfer-proofs/{presenter_request}/download', [PresenterRequestController::class, 'downloadVerifikatorTransferProof'])
+            ->name('verifikator-transfer-proofs.download');
     });
 
     Route::middleware('role:presenter')->prefix('presenter')->name('presenter.')->group(function () {

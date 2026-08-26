@@ -59,7 +59,7 @@ class VerifikatorPresenterRequestPolicy
 
     public function downloadVerifikatorTransferProof(User $user, PresenterRequest $presenterRequest): bool
     {
-        return in_array($user->role, [UserRole::Verifikator, UserRole::Keuangan, UserRole::SuperAdmin], true)
+        return in_array($user->role, [UserRole::Verifikator, UserRole::Keuangan, UserRole::SuperAdmin, UserRole::AdminPmb], true)
             && $presenterRequest->verifikatorTransfer !== null;
     }
 }

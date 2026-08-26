@@ -87,7 +87,14 @@
             <table class="min-w-full divide-y divide-slate-200">
                 <thead class="bg-slate-50">
                     <tr>
-                        <th class="{{ $th }}">Kode</th><th class="{{ $th }}">Presenter</th><th class="{{ $th }}">Tgl Transfer</th><th class="{{ $th }}">Nominal</th><th class="{{ $th }}">Verifikator</th><th class="{{ $th }}">Penerima Keuangan</th><th class="{{ $th }}">Catatan</th>
+                        <th class="{{ $th }}">Kode</th>
+                        <th class="{{ $th }}">Presenter</th>
+                        <th class="{{ $th }}">Tgl Transfer</th>
+                        <th class="{{ $th }}">Nominal</th>
+                        <th class="{{ $th }}">Verifikator</th>
+                        <th class="{{ $th }}">Penerima Keuangan</th>
+                        <th class="{{ $th }}">Catatan</th>
+                        <th class="{{ $th }}">Bukti TF</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
@@ -101,9 +108,21 @@
                             <td class="{{ $td }}">{{ $transfer?->transferrer?->name }}</td>
                             <td class="{{ $td }}">{{ $transfer?->financeUser?->name }}</td>
                             <td class="{{ $td }} text-slate-600">{{ $transfer?->note ?? '-' }}</td>
+                            <td class="{{ $td }}">
+                                @if ($transfer?->transfer_proof_file)
+                                    <a href="{{ route('verifikator-transfer-proofs.download', $row) }}"
+                                       target="_blank"
+                                       class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                                       title="Unduh bukti transfer">
+                                        <x-icon name="document" class="h-4 w-4" /> Unduh
+                                    </a>
+                                @else
+                                    <span class="text-slate-400">-</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="px-5 py-8 text-center text-sm text-slate-500">Tidak ada data.</td></tr>
+                        <tr><td colspan="8" class="px-5 py-8 text-center text-sm text-slate-500">Tidak ada data.</td></tr>
                     @endforelse
                 </tbody>
             </table>

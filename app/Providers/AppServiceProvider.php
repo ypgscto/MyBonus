@@ -56,6 +56,11 @@ class AppServiceProvider extends ServiceProvider
             fn (User $user, PresenterRequest $request) => app(\App\Policies\PresenterRequestPolicy::class)->downloadPresenterTransferProof($user, $request)
         );
 
+        Gate::define(
+            'download-verifikator-transfer-proof',
+            fn (User $user, PresenterRequest $request) => app(\App\Policies\PresenterRequestPolicy::class)->downloadVerifikatorTransferProof($user, $request)
+        );
+
         $presenterPolicy = \App\Policies\PresenterOwnsRequestPolicy::class;
 
         Gate::define('presenter-view-transfer-proof', fn (User $user, PresenterRequest $request) => app($presenterPolicy)->viewTransferProof($user, $request));
